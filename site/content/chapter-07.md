@@ -1,0 +1,116 @@
+# 第7章 状态估计与鲁棒控制
+
+本章解决两个相连的问题：传感器有噪声或数据不完整时，怎样得到可用的状态估计；模型不准确、外部扰动存在时，怎样避免控制器对误差过度敏感。示例仅用于通用运动跟踪与控制教学。
+
+## 7.1 从测量值到状态估计
+
+设一维运动状态为位置与速度：
+
+\[
+\mathbf{x}_k=\begin{bmatrix}p_k\\v_k\end{bmatrix},\quad
+\mathbf{x}_{k+1}=F\mathbf{x}_k+G a_k+\mathbf{w}_k,\quad
+z_k=H\mathbf{x}_k+\nu_k.
+\]
+
+采样周期为 \(T\)，采用恒定速度状态模型时
+\[
+F=\begin{bmatrix}1&T\\0&1\end{bmatrix},\quad G=\begin{bmatrix}T^2/2\\T\end{bmatrix},\quad H=\begin{bmatrix}1&0\end{bmatrix}.
+\]
+\(a_k\) 是已知输入，\(\mathbf w_k\) 表示未建模加速度等过程扰动，\(\nu_k\) 是位置测量噪声。卡尔曼滤波的思路是先按模型预测，再用测量残差修正：
+\[
+\hat x^-_{k+1}=F\hat x_k+Ga_k,\quad P^-_{k+1}=FP_kF^T+Q,
+\]
+\[
+K=P^-H^T(HP^-H^T+R)^{-1},\quad \hat x_{k+1}=\hat x^-+K(z-H\hat x^-),
+\]
+\[
+P_{k+1}=(I-KH)P^-.
+\]
+直观上，测量很吵（\(R\) 大）就少信测量；模型变化大（\(Q\) 大）就更快跟随测量。协方差是“不确定程度”的量化，不是实际状态误差本身。
+
+### C 示例：标量 α–β 跟踪器
+
+下面是完整 C99 程序。它每次接收一个位置测量，输出平滑位置和速度估计。它不是完整卡尔曼滤波器：增益 \(\alpha,\beta\) 需要根据采样周期和噪声离线整定。
+
+```c
+#include <math.h>      // 提供 isfinite 浮点数有效性检查
+#include <stdbool.h>   // 提供 bool 类型
+#include <stdio.h>     // 提供 printf
+
+typedef struct {
+    double position_m; // 内部统一使用米
+    double velocity_mps; // 内部统一使用米每秒
+    bool initialized; // 标记是否已用首个测量初始化
+} Tracker;
+
+static double clamp(double x, double lo, double hi) {
+    if (x < lo) return lo; // 下限保护
+    if (x > hi) return hi; // 上限保护
+    return x; // 位于范围内时原样返回
+}
+
+bool tracker_step(Tracker *s, double z_m, double dt_s,
+                  double alpha, double beta,
+                  double max_speed_mps) {
+    if (s == NULL) return false; // 防止空指针解引用
+    if (!isfinite(z_m) || !isfinite(dt_s) || dt_s <= 0.0) return false;
+    if (alpha < 0.0 || alpha > 1.0 || beta < 0.0 || beta > 1.0) return false;
+    if (!s->initialized) { // 首次测量仅初始化位置，避免凭空制造速度
+        s->position_m = z_m;
+        s->velocity_mps = 0.0;
+        s->initialized = true;
+        return true;
+    }
+    const double predicted = s->position_m + dt_s * s->velocity_mps; // 匀速预测
+    const double residual = z_m - predicted; // 创新/预测残差
+    s->position_m = predicted + alpha * residual; // 位置按 alpha 修正
+    s->velocity_mps += (beta / dt_s) * residual; // 速度按残差斜率修正
+    s->velocity_mps = clamp(s->velocity_mps, -max_speed_mps, max_speed_mps); // 合理速度边界
+    return isfinite(s->position_m) && isfinite(s->velocity_mps); // 阻止 NaN 继续传播
+}
+
+int main(void) {
+    Tracker tracker = {0.0, 0.0, false}; // 所有状态显式初始化
+    const double dt = 0.1; // 采样周期 0.1 s
+    const double measurements[] = {0.0, 0.12, 0.19, 0.34, 0.39, 0.51}; // 含噪位置测量
+    for (unsigned i = 0; i < sizeof measurements / sizeof measurements[0]; ++i) {
+        if (!tracker_step(&tracker, measurements[i], dt, 0.65, 0.18, 20.0)) {
+            fprintf(stderr, "估计器输入无效，样本 %u\n", i); // 报告首个失败样本
+            return 1;
+        }
+        printf("t=%.1f s, p_hat=%.3f m, v_hat=%.3f m/s\n",
+               i * dt, tracker.position_m, tracker.velocity_mps); // 输出便于核查
+    }
+    return 0; // 正常结束
+}
+```
+
+编译：`cc -std=c99 -Wall -Wextra -Wpedantic tracker.c -lm -o tracker`。实际嵌入周期任务时，把 `main` 换成系统的初始化函数和每周期调用；不要在每次调用前重新清零 `Tracker`。
+
+## 7.2 估计器接入控制回路
+
+建议数据流为：时间戳检查 → 单位与坐标转换 → 异常测量门限 → 状态预测 → 测量更新 → 输出状态及质量标记。测量缺失时可以只做预测，但必须同步增大不确定度，并设置最长连续失测时间；超过时间后应切换到明确定义的安全策略，而不是无限相信预测。控制器需要知道估计器是否初始化、测量是否有效、数据年龄多大。
+
+残差 \(r_k=z_k-H\hat x^-_k\) 是最容易使用的诊断量。残差长期偏正或偏负通常暗示偏置、坐标/符号错误或模型速度有偏；残差快速振荡可能是测量噪声、时间戳抖动或增益过大。残差均值、方差和连续超限次数应记录在日志中。
+
+## 7.3 鲁棒反馈与边界层
+
+考虑误差动力学 \(\dot e=u+d\)，其中未知扰动满足 \(|d|\le d_{max}\)。理想滑模控制可写为 \(u=-k\,\mathrm{sign}(e)\)，但有噪声和有限采样时会在零点附近高速切换。工程上常用饱和函数
+\[
+\mathrm{sat}(x/\phi)=\begin{cases}-1&x/\phi<-1\\x/\phi&|x/\phi|\le1\\1&x/\phi>1\end{cases}
+\]
+替换符号函数：\(u=-k\mathrm{sat}(e/\phi)\)。\(\phi\) 越大，抖振通常越小，但稳态误差带变宽；\(k\) 不能超过执行机构可实现范围。参数 \(k,\phi\) 必须结合对象、采样和噪声验证，不能只凭“增大增益更稳”来调。
+
+## 7.4 常见故障与排查
+
+| 现象 | 常见原因 | 按顺序排查 |
+|---|---|---|
+| 速度估计忽大忽小 | dt 单位错、时间戳不匀、beta 过大 | 打印相邻时间戳和 dt；确认秒而非毫秒；固定 dt 回放；再降低 beta |
+| 估计总是落后 | alpha/beta 太小或模型跟不上加速度 | 对齐原始测量与估计曲线；检查输入加速度是否注入；逐步调整增益 |
+| 估计跳变或出现 NaN | 输入无效、除以零、状态未初始化、单位溢出 | 在数据入口检查 finite；检查 dt>0；首次样本单独处理；输出每步中间值 |
+| 滑模输出高频翻转 | sign 直接切换、噪声或采样太慢 | 先记录未滤波误差和输出；确认噪声源；加边界层/合理滤波；评估延迟与误差带 |
+| 扰动一来就饱和 | 鲁棒增益过高或指令能力不足 | 统计饱和占空比；核算执行机构上限；减小误差需求或重新设计控制分配 |
+
+排错顺序建议固定为：**输入数据 → 时间戳/单位 → 坐标系与符号 → 状态初始化 → 模型预测 → 残差 → 参数 → 执行机构饱和**。一次只改一个因素，保存原始日志作对照。
+
+---
