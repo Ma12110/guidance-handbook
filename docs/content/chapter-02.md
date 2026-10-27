@@ -202,3 +202,13 @@ d_{ca}=\left\|\mathbf r+t_{ca}\mathbf v_r\right\|,
 3. 把 $\mathbf r\times\mathbf v_r$ 写成 $\mathbf v_r\times\mathbf r$ 会造成什么后果？
 
 **本章结论：**三维制导首先是相对运动几何。距离描述尺度，闭合速度描述径向趋势，LOS 角速度描述横向趋势；三者缺一不可。
+
+### 参考答案与判断依据
+
+1. 若初始距离非零，则 $R$ 保持不变，$V_c=0$，LOS 角速度也为零。这只是相对静止，不是正在形成碰撞。
+2. $V_c>0$ 仅说明距离当前在减小；LOS 仍转动表示横向误差尚未消除，最近接近距离可能大于零。
+3. 叉积次序交换会使结果取反，LOS 角速度方向随之反转，最终使制导指令方向错误。
+
+### 贯穿算例：先手算相对几何
+
+由第1章统一状态可得 $\mathbf r=\mathbf r_T-\mathbf r_M=[6000,1200,200]^T\ \mathrm m$、$\mathbf v_r=\mathbf v_T-\mathbf v_M=[-400,0,0]^T\ \mathrm{m/s}$。先自行计算，再用以下结果核对：$R\approx6122.1\ \mathrm m$、$V_c\approx392.0\ \mathrm{m/s}$、$\boldsymbol\omega_{LOS}\approx[0,-0.00213,0.01281]^T\ \mathrm{rad/s}$。若数量级或符号不同，应回查相对量定义和叉积次序。后续各章均使用这组相对状态。
