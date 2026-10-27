@@ -32,6 +32,8 @@ PN 只利用闭合速度和视线角速度，对持续机动目标会留下系�
 
 其中 $\hat a_{T,n}$ 是目标加速度在视线法向上的估计。第一项消除正在形成的视线转动，第二项提前补偿目标机动。APN 的关键并非“多加一个加速度”，而是估计器带宽与前馈增益的匹配：若 $\hat a_{T,n}$ 噪声大或延迟明显，前馈会把噪声直接送入舵机。
 
+在三维实现中应将上句的标量 $\hat a_{T,n}$ 理解为 $P_\perp\hat{\mathbf a}_T$。$K_a$ 必须来自所选目标机动模型、制导动力学和 $t_{go}$ 假设；不同 APN 推导可能得到常数、随时间变化或与导航比相关的系数。本书示例取 $K_a=0.5$ 仅用于验证接口，不把它作为普适推荐值。整定时应固定估计器，扫描目标机动频率与延迟，并同时检查脱靶量、指令噪声和饱和比例。
+
 ### 8.2.2 零控脱靶量 ZEM 制导
 
 三维实现必须先形成终端法平面内的脱靶向量，而不是只计算一个“横向误差”。令预测终端 LOS 为 $\hat{\boldsymbol\ell}_f$，定义
@@ -87,7 +89,20 @@ ZEM 把“位置误差、速度误差、剩余时间”压缩成一个具有长�
 
 ### 8.3.1 终端角度怎样进入状态约束
 
-三维落角不是一个平面角，而是期望终端速度方向 $\hat{\mathbf v}_f^*\in\mathbb S^2$。以
+三维落角不是一个平面角，而是期望终端速度方向 $\hat{\mathbf v}_f^*\in\mathbb S^2$。
+
+若用终端航向角 $\chi_f$ 和终端航迹倾角 $\gamma_f$ 描述，在 ENU 坐标中可定义
+
+\[
+\hat{\mathbf v}_f^*=
+\begin{bmatrix}
+\cos\gamma_f\sin\chi_f\\
+\cos\gamma_f\cos\chi_f\\
+\sin\gamma_f
+\end{bmatrix}.
+\]
+
+内部始终比较单位向量，不直接相减两个周期角。三维方向误差可用 $\theta_f=\arccos(\operatorname{clip}(\hat{\mathbf v}_M^T\hat{\mathbf v}_f^*,-1,1))$；若还需分别报告航向和倾角误差，再从同一单位向量反算，避免跨越 $\pm\pi$ 时产生假大误差。由此定义
 
 \[
 P_f=I-\hat{\mathbf v}_f^*\hat{\mathbf v}_f^{*T}
@@ -263,6 +278,10 @@ int main(void) {
 延伸阅读：Ryoo、Cho 与 Tahk 给出了带终端落角约束的线性最优制导系统推导（*Journal of Guidance, Control, and Dynamics*, 2005, DOI: [10.2514/1.8392](https://doi.org/10.2514/1.8392)）；Lam 给出了加速度补偿 ZEM 与 PN/APN 关系的分析（*Journal of Guidance, Control, and Dynamics*, 2007, DOI: [10.2514/1.26948](https://doi.org/10.2514/1.26948)）。
 
 ## 8.7 一个可编译的受限 MPC 教学实现
+
+最终三维 MPC 应使用 $\mathbf x=[\mathbf r^T,\mathbf v^T]^T\in\mathbb R^6$、$\mathbf u=\mathbf a\in\mathbb R^3$，并在每个预测时刻施加整体约束 $\|\mathbf u_k\|_2\le a_{max}$。三个轴分别限幅会允许合成加速度达到 $\sqrt3a_{max}$，并非同一约束。
+
+三维投影梯度参考实现见 [`examples/mpc_3d.c`](https://github.com/PaoShou-China/guidance-handbook/blob/main/examples/mpc_3d.c)；它将每个候选控制向量投影回三维球约束。下面的一维枚举器仅用于观察滚动优化、首控制量执行和计算量增长，不作为最终三维 MPC。
 
 下面使用一维双积分对象 \(x=[p,v]^T\)，输入为恒定加速度。程序枚举离散候选控制序列，保留代价最低者的首个输入。它是可运行的教学示例，不是高性能求解器；候选数和预测步数增加时，计算量呈 \(M^N\) 增长。
 

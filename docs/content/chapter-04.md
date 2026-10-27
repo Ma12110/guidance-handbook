@@ -131,6 +131,8 @@ $T_b$ 是交班混合时间。混合前必须把两侧指令转换到同一坐�
 
 ## 4.4 C 示例：带时间戳的传播与滞回交接状态机
 
+完整三维闭环中的 `Conditions` 结构体和交班计算见 [`examples/full_guidance_3d.c`](https://github.com/PaoShou-China/guidance-handbook/blob/main/examples/full_guidance_3d.c)。它由三维相对状态计算距离、离轴角、闭合速度和指令需求，并与数据年龄、NIS、协方差和跟踪标志共同驱动状态机。下面的一维传播函数只讲解时间戳处理，不是最终交班实现。
+
 示例用一维位置/速度展示接口原则；它不是轨迹规划器。输入单位 m、m/s、m/s²、s。采样时间由单调时钟计算，不使用可能跳变的日历时钟。代码包含 stale 数据拒绝和连续周期进入判定。
 
 ```c

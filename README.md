@@ -47,7 +47,10 @@ python -m http.server 8000 --directory docs
 - `docs/labs-*.js`：交互实验
 - `site/`：发布资源镜像
 - `scripts/validate_content.py`：内容检查脚本
-- `examples/guidance_3d.c`：三维 PN、APN、ZEM、IAC 与 TZC 参考实现
+- `examples/guidance_3d.c`：三维制导律单周期参考实现
+- `examples/full_guidance_3d.c`：中制导、交班、末制导和执行机构完整闭环
+- `examples/estimator_3d.c`：六状态三维位置—速度估计
+- `examples/mpc_3d.c`：带三维向量模约束的滚动优化示例
 - `VALIDATION.md`：公式审校与发布验收记录
 
 运行检查：

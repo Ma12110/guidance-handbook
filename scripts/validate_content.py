@@ -37,6 +37,14 @@ for token in (r"\mathbf{ZEM}_\perp", r"\mathbf a_{IAC}", r"\mathbf a_{TZC}"):
         errors.append(f"chapter-08.md: missing 3-D terminal-guidance token {token!r}")
 if not example3d.exists() or "Vec3 pn,apn,zem,iac,tzc" not in example3d.read_text(encoding="utf-8"):
     errors.append("examples/guidance_3d.c: missing unified 3-D guidance outputs")
+for name, token in {
+    "full_guidance_3d.c": "HANDOFF",
+    "estimator_3d.c": "AxisKF",
+    "mpc_3d.c": "project",
+}.items():
+    path = ROOT / "examples" / name
+    if not path.exists() or token not in path.read_text(encoding="utf-8"):
+        errors.append(f"examples/{name}: missing required 3-D reference implementation")
 
 if errors:
     print("\n".join(errors))

@@ -17,6 +17,24 @@
 
 ## 7.1 先分清量测与状态
 
+正式三维相对状态建议定义为
+
+\[
+\mathbf x=[r_x,r_y,r_z,v_x,v_y,v_z]^T.
+\]
+
+匀速离散模型为
+
+\[
+\mathbf x_{k+1}=\begin{bmatrix}I_3&\Delta t I_3\\0&I_3\end{bmatrix}\mathbf x_k+\mathbf w_k,
+\qquad
+\mathbf z_k=\begin{bmatrix}I_3&0\end{bmatrix}\mathbf x_k+\boldsymbol\nu_k.
+\]
+
+协方差是 $6\times6$ 矩阵，包含三个位置、三个速度及其交叉相关。若教学阶段假设三轴噪声独立，可实现为三个共享模型的 $2\times2$ 子滤波器；完整示例见 [`examples/estimator_3d.c`](https://github.com/PaoShou-China/guidance-handbook/blob/main/examples/estimator_3d.c)。存在坐标变换、共同时间误差或 LOS 角量测时，三轴通常不再独立，必须使用完整协方差和量测雅可比。
+
+三维估计输出至少包含 $\hat{\mathbf r}$、$\hat{\mathbf v}_r$、$P$、时间戳、数据年龄和有效标志，供交班 NIS 与三维制导律共同使用。
+
 惯导给出导弹自身状态，卫星导航提供较低频但长期不漂移的修正，数据链给出带通信延迟的目标状态，导引头主要给出弹目相对角度、角速度、距离或距离率。制导律需要的却是同一时刻、同一坐标系下的相对状态。因此，进入滤波器前必须先完成时间对齐与坐标统一，并保留有效标志、数据年龄和噪声等级。把旧数据当成当前数据，会使滤波器把通信延迟误判为目标机动。
 
 ## 7.2 从测量值到状态估计

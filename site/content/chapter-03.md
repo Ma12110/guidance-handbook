@@ -49,6 +49,22 @@ LOS 的三维转轴角速度为
 
 ### 追踪法、前置法和 PN 的根本区别
 
+三维纯追踪直接使用 LOS 单位向量：
+
+\[
+\mathbf v_M^*=V_M\hat{\mathbf r},\qquad
+\mathbf a_c=K_v(\mathbf v_M^*-\mathbf v_M).
+\]
+
+三维预测前置法先求正的拦截时间 $t_i$，再构造空间预测点
+
+\[
+\mathbf p_I=\mathbf r_T+t_i\mathbf v_T,\qquad
+\hat{\mathbf d}_I=\frac{\mathbf p_I-\mathbf r_M}{\|\mathbf p_I-\mathbf r_M\|}.
+\]
+
+速度参考为 $\mathbf v_M^*=V_M\hat{\mathbf d}_I$。三维几何无需把水平面和垂直面拆成两套前置角；拆分显示时也必须从同一个空间预测点反算。
+
 纯追踪法始终把速度方向指向目标当前位置。目标只要存在横向速度，导弹就会不断改变航向，弹道常呈持续弯曲。它容易理解，但通常消耗更多速度和控制能量，末段还可能出现较大转弯需求。
 
 前置法瞄准预测相遇点而非目标当前位置。若目标匀速、导弹速度近似恒定，可通过
