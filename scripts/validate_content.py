@@ -26,6 +26,18 @@ ch9 = (ROOT / "docs/content/chapter-09.md").read_text(encoding="utf-8")
 if "#define A_MAX_MPS2 294.1995" not in ch9:
     errors.append("chapter-09.md: code constant no longer matches 30g table")
 
+ch3 = (ROOT / "docs/content/chapter-03.md").read_text(encoding="utf-8")
+ch8 = (ROOT / "docs/content/chapter-08.md").read_text(encoding="utf-8")
+example3d = ROOT / "examples/guidance_3d.c"
+for token in (r"\boldsymbol\omega_{LOS}", r"\mathbf a_c", "三维"):
+    if token not in ch3:
+        errors.append(f"chapter-03.md: missing 3-D PN token {token!r}")
+for token in (r"\mathbf{ZEM}_\perp", r"\mathbf a_{IAC}", r"\mathbf a_{TZC}"):
+    if token not in ch8:
+        errors.append(f"chapter-08.md: missing 3-D terminal-guidance token {token!r}")
+if not example3d.exists() or "Vec3 pn,apn,zem,iac,tzc" not in example3d.read_text(encoding="utf-8"):
+    errors.append("examples/guidance_3d.c: missing unified 3-D guidance outputs")
+
 if errors:
     print("\n".join(errors))
     sys.exit(1)
