@@ -54,8 +54,16 @@
 | 侧滑角 $\beta$ | 速度相对机体对称面的侧向夹角 | 正号按 $+y_b$ 分量定义；接入外部气动数据时须核对其来流/速度定义 |
 | 倾侧角 $\phi_v$ | 速度法平面内的升力方向角 | 零倾侧时升力取局部向上方向；绕 $+x_v$ 按右手定则为正 |
 | 离轴角 $\theta_{off}$ | 弹体/导引头视轴 $\hat{\mathbf b}$ 与 LOS 的夹角 | $\arccos(\hat{\mathbf b}\cdot\hat{\mathbf r})\in[0,\pi]$，只表示圆锥夹角，不含方位符号 |
+| 导弹前置角 $\eta_M$ | 导弹速度与 LOS 的夹角 | $\arccos(\hat{\mathbf v}_M\cdot\hat{\mathbf r})$；是三维夹角，不应直接用两个方位角相减代替 |
+| 目标迎向角 $\eta_T$（target aspect） | 目标速度与“目标指向导弹”方向的夹角 | $\arccos(\hat{\mathbf v}_T\cdot(-\hat{\mathbf r}))$；$0$ 表示迎向导弹，$\pi$ 表示同向逃逸；它不是目标姿态欧拉角 |
+| 期望终端航向/航迹倾角 $\chi_f,\gamma_f$ | 共同定义期望终端速度方向 $\hat{\mathbf d}_f$ | 分别按 ENU 的航向角与航迹倾角定义；“落角”若相对地面或目标表面定义，必须另外说明参考面和正方向 |
+| 终端方向误差 $\varepsilon_f$ | 终端速度方向与期望终端方向的夹角 | $\arccos(\hat{\mathbf v}_M(t_f)\cdot\hat{\mathbf d}_f)$；它与位置脱靶量是两个独立指标 |
 
 相对量固定定义为从导弹指向目标：$\mathbf r=\mathbf r_T-\mathbf r_M$、$\mathbf v_r=\mathbf v_T-\mathbf v_M$；接近时闭合速度 $V_c=-\dot R>0$。三维制导计算优先使用 $\hat{\mathbf r}$ 和 $\boldsymbol\omega_{LOS}=(\mathbf r\times\mathbf v_r)/R^2$，方位角和仰角主要用于显示，避免在天顶附近把角度参数化奇异性带入制导律。
+
+![三维制导坐标系与角度总图](assets/guidance-angles-overview.svg)
+
+读图时应先判断角属于哪一层：$\lambda_{az},\lambda_{el}$ 描述 **LOS 在导航系中的显示方向**；$\boldsymbol\omega_{LOS}$ 描述 **LOS 在三维空间的瞬时转动**，是 PN 的直接输入；$\eta_M,\eta_T,\theta_{off}$ 是 **两个方向矢量之间的几何夹角**；$\chi,\gamma$ 描述速度方向；$\psi,\theta,\phi$ 描述机体姿态；$\alpha,\beta,\phi_v$ 用于把制导加速度交给气动与控制系统；$\varepsilon_f$ 则用于检查终端方向约束。它们不能因为都以度或弧度表示就互相代换。
 
 ## 学习准备：最低限度的数学与控制知识
 

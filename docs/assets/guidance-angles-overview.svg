@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">三维制导坐标系与角度总图</title>
+  <desc id="desc">四个分图分别说明三维弹目视线几何、水平面方位角和航向角、垂直面视线仰角航迹倾角俯仰角与攻角，以及速度法平面内的倾侧角侧滑角和终端方向误差。</desc>
+  <defs>
+    <marker id="blueArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#24658e"/></marker>
+    <marker id="orangeArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#c57e34"/></marker>
+    <marker id="greenArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#28836e"/></marker>
+    <marker id="redArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#b95050"/></marker>
+    <style>
+      .t{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#263b4c}.h{font-size:22px;font-weight:700}.s{font-size:15px}.m{font-size:17px;font-weight:700}.note{font-size:14px;fill:#5f7485}.panel{fill:#f8fafc;stroke:#ccd9e3;stroke-width:1.5}.axis{stroke:#94a9b8;stroke-width:2}.guide{stroke:#a8bbc8;stroke-width:1.5;stroke-dasharray:6 5}.los{stroke:#24658e;stroke-width:4}.vm{stroke:#28836e;stroke-width:4}.vt{stroke:#c57e34;stroke-width:4}.body{stroke:#b95050;stroke-width:4}.arc{fill:none;stroke-width:2.5}.dotM{fill:#24658e}.dotT{fill:#c57e34}.tag{fill:#fff;stroke:#d4dfe7}.formula{font-family:"Cambria Math","Times New Roman",serif;font-size:16px;fill:#263b4c}
+    </style>
+  </defs>
+  <rect width="1200" height="820" fill="#eef3f7"/>
+  <text class="t h" x="36" y="40">三维制导坐标系与角度总图</text>
+  <text class="t note" x="36" y="66">统一约定：右手系；导航系为 ENU；相对位置 r = rₜ − rₘ；角度内部使用 rad。弧线只表示角度定义，不代表真实尺度。</text>
+
+  <!-- A: 3-D overview -->
+  <g transform="translate(25 88)">
+    <rect class="panel" width="565" height="330" rx="14"/>
+    <text class="t m" x="20" y="32">A　三维弹目几何：先看矢量，再看角度</text>
+    <g transform="translate(100 255)">
+      <line class="axis" x1="0" y1="0" x2="170" y2="0" marker-end="url(#redArrow)"/><text class="t s" x="178" y="5">E / xₙ</text>
+      <line class="axis" x1="0" y1="0" x2="-58" y2="-42" marker-end="url(#greenArrow)"/><text class="t s" x="-95" y="-46">N / yₙ</text>
+      <line class="axis" x1="0" y1="0" x2="0" y2="-145" marker-end="url(#blueArrow)"/><text class="t s" x="10" y="-145">U / zₙ</text>
+      <circle class="dotM" cx="55" cy="-25" r="8"/><text class="t s" x="32" y="0">导弹 M</text>
+      <circle class="dotT" cx="355" cy="-175" r="8"/><text class="t s" x="365" y="-178">目标 T</text>
+      <line class="los" x1="55" y1="-25" x2="350" y2="-172" marker-end="url(#blueArrow)"/><text class="t m" x="195" y="-112">r，LOS</text>
+      <line class="vm" x1="55" y1="-25" x2="174" y2="-72" marker-end="url(#greenArrow)"/><text class="t s" x="112" y="-79">vₘ</text>
+      <line class="vt" x1="355" y1="-175" x2="276" y2="-218" marker-end="url(#orangeArrow)"/><text class="t s" x="286" y="-225">vₜ</text>
+      <path class="arc" d="M112 -47 A62 62 0 0 0 110 -54" stroke="#6f54a3"/>
+    </g>
+    <rect class="tag" x="305" y="235" width="238" height="72" rx="8"/>
+    <text class="formula" x="319" y="258">r̂ = r / ‖r‖</text>
+    <text class="formula" x="319" y="281">V<tspan baseline-shift="sub" font-size="12">c</tspan> = −r̂ · (vₜ − vₘ)</text>
+    <text class="formula" x="319" y="302">ω<tspan baseline-shift="sub" font-size="12">LOS</tspan> = r × (vₜ − vₘ) / ‖r‖²</text>
+    <text class="t note" x="20" y="312">PN/APN 等三维制导律优先直接使用 r̂、V<tspan baseline-shift="sub">c</tspan>、ω<tspan baseline-shift="sub">LOS</tspan>，不必先拆成两个平面角。</text>
+  </g>
+
+  <!-- B: horizontal plane -->
+  <g transform="translate(610 88)">
+    <rect class="panel" width="565" height="330" rx="14"/>
+    <text class="t m" x="20" y="32">B　ENU 水平投影：方位、航向与前置角</text>
+    <g transform="translate(160 255)">
+      <line class="axis" x1="0" y1="0" x2="0" y2="-175" marker-end="url(#greenArrow)"/><text class="t s" x="10" y="-165">北 N</text>
+      <line class="axis" x1="0" y1="0" x2="255" y2="0" marker-end="url(#redArrow)"/><text class="t s" x="262" y="5">东 E</text>
+      <circle class="dotM" cx="0" cy="0" r="7"/><text class="t s" x="-48" y="24">导弹 M</text>
+      <line class="los" x1="0" y1="0" x2="215" y2="-112" marker-end="url(#blueArrow)"/><text class="t s" x="152" y="-119">LOS 水平投影</text>
+      <line class="vm" x1="0" y1="0" x2="170" y2="-145" marker-end="url(#greenArrow)"/><text class="t s" x="113" y="-151">vₘ 水平投影</text>
+      <path class="arc" d="M0 -63 A63 63 0 0 1 56 -29" stroke="#24658e" marker-end="url(#blueArrow)"/><text class="t m" x="24" y="-73">λ<tspan baseline-shift="sub" font-size="12">az</tspan></text>
+      <path class="arc" d="M0 -92 A92 92 0 0 1 70 -60" stroke="#28836e" marker-end="url(#greenArrow)"/><text class="t m" x="52" y="-102">χₘ</text>
+      <path class="arc" d="M108 -92 A142 142 0 0 1 126 -65" stroke="#6f54a3"/><text class="t m" x="128" y="-82">ηₘ</text>
+    </g>
+    <text class="t s" x="25" y="293">λ<tspan baseline-shift="sub">az</tspan>：LOS 方位角　　χₘ：导弹航向角　　ηₘ：导弹速度与 LOS 的三维前置角</text>
+    <text class="t note" x="25" y="318">注意：ηₘ ≠ λ<tspan baseline-shift="sub">az</tspan> − χₘ（只有双方都在水平面内时才可这样化简）。</text>
+  </g>
+
+  <!-- C: vertical plane -->
+  <g transform="translate(25 438)">
+    <rect class="panel" width="565" height="350" rx="14"/>
+    <text class="t m" x="20" y="32">C　局部垂直投影：LOS 仰角、航迹角、俯仰角与攻角</text>
+    <g transform="translate(90 260)">
+      <line class="axis" x1="0" y1="0" x2="390" y2="0" marker-end="url(#redArrow)"/><text class="t s" x="397" y="5">局部水平</text>
+      <line class="axis" x1="0" y1="0" x2="0" y2="-175" marker-end="url(#blueArrow)"/><text class="t s" x="9" y="-165">U</text>
+      <line class="los" x1="0" y1="0" x2="330" y2="-125" marker-end="url(#blueArrow)"/><text class="t s" x="280" y="-132">LOS</text>
+      <line class="vm" x1="0" y1="0" x2="300" y2="-72" marker-end="url(#greenArrow)"/><text class="t s" x="270" y="-78">vₘ</text>
+      <line class="body" x1="0" y1="0" x2="260" y2="-96" marker-end="url(#redArrow)"/><text class="t s" x="214" y="-105">x<tspan baseline-shift="sub">b</tspan> / 视轴</text>
+      <path class="arc" d="M66 0 A66 66 0 0 0 62 -24" stroke="#24658e"/><text class="t m" x="67" y="-9">λ<tspan baseline-shift="sub" font-size="12">el</tspan></text>
+      <path class="arc" d="M100 0 A100 100 0 0 0 97 -23" stroke="#28836e"/><text class="t m" x="107" y="-28">γₘ</text>
+      <path class="arc" d="M137 0 A137 137 0 0 0 128 -49" stroke="#b95050"/><text class="t m" x="139" y="-51">θ</text>
+      <path class="arc" d="M180 -66 A192 192 0 0 1 184 -44" stroke="#6f54a3"/><text class="t m" x="192" y="-52">α</text>
+      <path class="arc" d="M225 -83 A238 238 0 0 0 224 -54" stroke="#c57e34"/><text class="t m" x="236" y="-66">θ<tspan baseline-shift="sub" font-size="12">off</tspan></text>
+    </g>
+    <text class="t s" x="22" y="302">λ<tspan baseline-shift="sub">el</tspan>：LOS 仰角　γₘ：航迹倾角　θ：机体俯仰角　α：攻角　θ<tspan baseline-shift="sub">off</tspan>：视轴—LOS 离轴角</text>
+    <text class="t note" x="22" y="329">仅在无侧滑且共面的小范围示意中可写 α ≈ θ − γₘ；三维程序应由矢量或坐标变换计算。</text>
+  </g>
+
+  <!-- D: local frames and terminal direction -->
+  <g transform="translate(610 438)">
+    <rect class="panel" width="565" height="350" rx="14"/>
+    <text class="t m" x="20" y="32">D　局部角与末端约束：不要混成一个“方向角”</text>
+    <g transform="translate(142 178)">
+      <circle cx="0" cy="0" r="92" fill="#fff" stroke="#d4dfe7" stroke-width="2"/>
+      <line class="axis" x1="0" y1="0" x2="0" y2="-118" marker-end="url(#blueArrow)"/><text class="t s" x="10" y="-108">零倾侧升力方向</text>
+      <line class="axis" x1="0" y1="0" x2="110" y2="0" marker-end="url(#orangeArrow)"/><text class="t s" x="116" y="5">+yᵥ</text>
+      <line class="vm" x1="0" y1="0" x2="78" y2="-78" marker-end="url(#greenArrow)"/><text class="t s" x="80" y="-77">a<tspan baseline-shift="sub">⊥</tspan></text>
+      <path class="arc" d="M0 -62 A62 62 0 0 1 44 -44" stroke="#28836e" marker-end="url(#greenArrow)"/><text class="t m" x="21" y="-65">φᵥ</text>
+      <text class="t note" x="-103" y="124">沿 +xᵥ 观察速度法平面</text>
+    </g>
+    <g transform="translate(358 115)">
+      <line class="vm" x1="0" y1="110" x2="145" y2="35" marker-end="url(#greenArrow)"/><text class="t s" x="90" y="26">终端速度 vₘ(t<tspan baseline-shift="sub">f</tspan>)</text>
+      <line class="body" x1="0" y1="110" x2="126" y2="3" marker-end="url(#redArrow)"/><text class="t s" x="62" y="-5">期望终端方向 d<tspan baseline-shift="sub">f</tspan></text>
+      <path class="arc" d="M84 66 A96 96 0 0 0 72 49" stroke="#6f54a3"/><text class="t m" x="92" y="59">ε<tspan baseline-shift="sub" font-size="12">f</tspan></text>
+    </g>
+    <text class="t s" x="25" y="292">φᵥ：法向加速度方向绕速度轴的倾侧角　　β：速度相对机体对称面的侧滑角</text>
+    <text class="t s" x="25" y="317">ε<tspan baseline-shift="sub">f</tspan> = arccos(v̂ₘ(t<tspan baseline-shift="sub">f</tspan>) · d̂<tspan baseline-shift="sub">f</tspan>)：终端方向误差；与脱靶量是两个不同指标。</text>
+    <text class="t note" x="25" y="340">目标迎向角 ηₜ = ∠(v̂ₜ, −r̂)：0° 表示迎向导弹，180° 表示同向逃逸；它不是姿态欧拉角。</text>
+  </g>
+</svg>

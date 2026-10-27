@@ -46,6 +46,15 @@ for name, token in {
     if not path.exists() or token not in path.read_text(encoding="utf-8"):
         errors.append(f"examples/{name}: missing required 3-D reference implementation")
 
+angle_figure = ROOT / "docs/assets/guidance-angles-overview.svg"
+if not angle_figure.exists():
+    errors.append("docs/assets/guidance-angles-overview.svg: missing angle convention figure")
+else:
+    figure_text = angle_figure.read_text(encoding="utf-8")
+    for token in ("三维弹目几何", "LOS 方位角", "航迹倾角", "终端方向误差"):
+        if token not in figure_text:
+            errors.append(f"guidance-angles-overview.svg: missing figure label {token!r}")
+
 if errors:
     print("\n".join(errors))
     sys.exit(1)
