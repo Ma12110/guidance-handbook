@@ -182,7 +182,9 @@ int main(void)
 
 统一算例的最终软件验收应至少保存：带单调时间戳的真值与估计状态、模式状态、原始/限幅/实际加速度、协方差摘要、数据年龄、饱和标志、周期执行时间和终端指标。先用无噪声同步数据验证几何与符号，再依次加入噪声、延迟、丢帧、目标机动和执行机构动态；每次只增加一个因素。若步长减半后终端指标明显改变，应先检查数值积分与调度，而不是宣称制导律性能改变。
 
-### 分层练习与实验操作卡
+### 计算与编程练习
+
+> **实验能力边界：** 标注为“网页可完成”的内容仅使用本页实际显示的控件；凡要求新增制导律、噪声、延迟或约束开关而页面未显示对应控件，均标注为“需自行编程”，不应寻找不存在的滑块。
 
 - **基础题：**说明确定性、正确性与实时性三者为何不能互相替代。
 - **计算题：**周期 20 ms、最坏执行时间 13 ms、调度与通信最坏占用 5 ms 时，计算剩余裕量。
@@ -232,7 +234,7 @@ V_c=392.02\ \mathrm{m/s},
 
 其模长为 $15.269\ \mathrm{m/s^2}\approx1.557g$，远低于 30g，因此本周期幅值限幅不动作。点积 $\mathbf a_{raw}^T\hat{\mathbf r}\approx0$，说明命令位于 LOS 法平面。
 
-若以当前速度方向 $+x$ 建立简化速度坐标系，控制系统只取垂直速度的 $y,z$ 分量，则
+上式 $\mathbf a_{raw}$ 是 LOS 法平面内的惯性系三维指令。若以当前速度方向 $+x$ 建立本周期的简化速度坐标系，再投影到速度法平面，得到 $\mathbf a_{v\perp}=[0,14.761,2.460]^T\ \mathrm{m/s^2}$。以下 $a_n$ 和 $\phi_c$ 只由该投影计算：
 
 \[
 a_n=\sqrt{14.761^2+2.460^2}=14.965\ \mathrm{m/s^2},
@@ -245,9 +247,9 @@ a_n=\sqrt{14.761^2+2.460^2}=14.965\ \mathrm{m/s^2},
 这个较大的倾侧角只表示升力方向，不能解读为已经完成滚转。若等效执行机构满足 $\tau\dot{\mathbf a}+\mathbf a=\mathbf a_{cmd}$，$\tau=0.05\ \mathrm s$、制导周期 $\Delta t=0.02\ \mathrm s$，采用显式欧拉且初始实际加速度为零，则第一周期
 
 \[
-\mathbf a_{actual,1}=\frac{\Delta t}{\tau}\mathbf a_{cmd}
-=0.4\mathbf a_{cmd}
-=[-1.214,5.905,0.984]^T\ \mathrm{m/s^2}.
+\mathbf a_{actual,1}=\frac{\Delta t}{\tau}\mathbf a_{cmd,v\perp}
+=0.4\mathbf a_{cmd,v\perp}
+=[0,5.905,0.984]^T\ \mathrm{m/s^2}.
 \]
 
 简单估计剩余时间为
@@ -269,7 +271,7 @@ t_{go}\approx\frac{R}{V_c}=15.617\ \mathrm s.
 先逐项手算并允许最后一位存在舍入差异；再用脚本实现；最后用 C99 实现并逐中间量比对。若最终命令不同，不要先调 $N$，应按 $\mathbf r\rightarrow R\rightarrow V_c\rightarrow\boldsymbol\omega_{LOS}\rightarrow\mathbf a_c$ 的顺序找到第一个不同量。该答案只验证一个初始周期的几何和接口，不证明闭环一定命中；闭环性能必须通过后续积分、目标机动、估计误差和约束仿真评价。
 
 
-## 综合作业：三维全流程拦截的数字闭环验证
+## 独立综合作业：三维全流程拦截的数字闭环验证
 
 > **任务性质：**导弹制导教学仿真。目标是贯通中制导、导引头截获、末制导和受限控制，并用终端脱靶量、落角误差、峰值过载及饱和比例评价结果；不对应任何具体型号。
 
@@ -297,6 +299,17 @@ t_{go}\approx\frac{R}{V_c}=15.617\ \mathrm s.
 | 加速度约束 | $\lVert\mathbf a_c\rVert\le 30g\approx294.2\ \mathrm{m/s^2}$ | 按下述脚本机动 |
 | 任务 | 通过预测拦截点 $(12000,0,1000)$ m | 按脚本飞行 |
 
+### 与逐章核对案例的参数差异
+
+| 参数 | 逐章核对案例 | 独立综合作业 |
+|---|---:|---:|
+| 导弹初始速度 | $(300,0,0)$ m/s | $(90,0,0)$ m/s |
+| 目标初始位置 | $(6000,1200,1200)$ m | $(3500,-4000,1000)$ m |
+| 目标初始速度 | $(-100,0,0)$ m/s | $(60.62,35,0)$ m/s |
+| 用途 | 单周期中间量核对 | 完整闭环设计与对照实验 |
+
+两者共享坐标、单位和 30g 上限，但不是同一条轨迹，数值结果不得混用。
+
 仿真时域取 160 s，建议步长从 $\Delta t=0.05\ \mathrm{s}$ 开始，并检查步长减半后结论是否明显变化。目标的横向机动采用已知、确定的测试脚本：$35\le t<43\ \mathrm{s}$ 时沿水平速度左法向施加 $0.8\ \mathrm{m/s^2}$；$43\le t<51\ \mathrm{s}$ 时施加 $-0.8\ \mathrm{m/s^2}$；$80\le t<86\ \mathrm{s}$ 时施加 $-0.5\ \mathrm{m/s^2}$；$86\le t<92\ \mathrm{s}$ 时施加 $+0.5\ \mathrm{m/s^2}$。其他时段加速度为零。左法向定义为 $[-v_y,v_x,0]^T/\sqrt{v_x^2+v_y^2}$。若水平速度模过小，脚本应返回零加速度并置有效标志，不能除以零。
 
 该脚本只是可重复的仿真输入，不是目标运动预测模型。导弹可以读取带时间戳的当前位置和速度，但必须自己处理测量延迟、有限采样和状态误差。基础版本先用无噪声同步状态调通，再加入延迟与噪声。
@@ -319,7 +332,7 @@ t_{go}\approx\frac{R}{V_c}=15.617\ \mathrm s.
 
 ### C99 起步框架
 
-下面程序包含状态定义、目标机动脚本、加速度限幅和三自由度积分。基准制导器只负责向预测拦截点飞行，**故意没有实现末制导律**；你需要在标注的 TODO 处增加状态预测、冲突判别、受限末制导和回航逻辑。初始版本可以运行，但未完成 TODO 前不满足安全验收条件。
+下面程序包含状态定义、目标机动脚本、加速度限幅和三自由度积分。基准制导器只负责向预测拦截点飞行，**故意没有实现末制导律**；你需要在标注的 TODO 处增加状态预测、相对状态预测、中末制导切换、受限末制导和终止逻辑。初始版本可以运行，但未完成 TODO 前不满足安全验收条件。
 
 ```c
 /* 编译：cc -std=c99 -Wall -Wextra -Wpedantic -O2 assignment.c -lm -o assignment */
@@ -329,7 +342,7 @@ t_{go}\approx\frac{R}{V_c}=15.617\ \mathrm s.
 
 #define DT_S 0.05
 #define T_END_S 160.0
-#define A_MAX_MPS2 2.5
+#define A_MAX_MPS2 294.1995 /* 30g；与本节参数表一致 */
 #define V_WAYPOINT_MPS 90.0
 
 typedef struct { double x, y, z; } Vec3; /* ENU：m */
@@ -350,7 +363,7 @@ static Vec3 limit_accel(Vec3 a, double limit)
 }
 
 /* 已知机动目标脚本：返回确定的测试加速度，不是预测器。 */
-static Vec3 traffic_accel(double t_s, Vec3 v)
+static Vec3 target_accel(double t_s, Vec3 v)
 {
     const double vh = hypot(v.x, v.y); /* 水平速度模，m/s */
     if (!isfinite(t_s) || !isfinite(vh) || vh < 1.0) return (Vec3){0,0,0};
@@ -385,12 +398,12 @@ static AccelCommand design_guidance(const Body *own, const Body *traffic,
     Vec3 a_cmd = {0.0,0.0,0.0};
     if (isfinite(d) && d > 1.0) {
         const Vec3 v_des = scale(to_wp, V_WAYPOINT_MPS/d);
-        a_cmd = scale(sub(v_des, own->v), 0.8); /* 教学基线，不含交通避让 */
+        a_cmd = scale(sub(v_des, own->v), 0.8); /* 教学基线，不含末制导 */
     }
 
     /* TODO 1：基于相对位置/速度预测最近会遇距离和时间。 */
     /* TODO 2：若风险触发，生成带滞回的受限末制导命令。 */
-    /* TODO 3：冲突解除后平滑回到预测拦截点跟踪，避免指令突变。 */
+    /* TODO 3：中末制导交接时平滑混合两侧指令，避免指令突变。 */
 
     out.a = limit_accel(a_cmd, A_MAX_MPS2); /* 最终施加加速度模长限制 */
     out.valid = isfinite(out.a.x) && isfinite(out.a.y) && isfinite(out.a.z);
@@ -420,7 +433,7 @@ int main(void)
         if (!cmd.valid) { puts("无效制导输出：终止仿真并检查输入"); return 1; }
 
         step_body(&own, cmd.a, DT_S);
-        step_body(&traffic, traffic_accel(t,traffic.v), DT_S);
+        step_body(&traffic, target_accel(t,traffic.v), DT_S);
 
         const double sep = norm(sub(own.r,traffic.r));
         if (sep < min_sep_m) { min_sep_m=sep; min_sep_time_s=t+DT_S; }
@@ -448,4 +461,4 @@ int main(void)
 4. 一页“失败案例”：至少展示一次目标机动或延迟导致脱靶量显著增大，并按本章排错流程定位原因。
 5. 简短说明：你选的方法的假设是什么，哪些情形下会失效，下一步如何提高模型可信度。
 
-**评分建议（100 分）：**模型与单位约定 15；C 实现与数值健壮性 20；安全冲突预测和绕飞逻辑 25；平滑限幅与滞回切换 15；实验设计、图表和失败分析 15；复现说明 10。只让一次仿真“看起来绕开了”不算完成，须覆盖多组延迟、机动时刻和初始位置并逐一报告验收结果。
+**评分建议（100 分）：**模型与单位约定 15；C 实现与数值健壮性 20；相对状态预测和阶段切换逻辑 25；平滑限幅与滞回切换 15；实验设计、图表和失败分析 15；复现说明 10。只让一次仿真“看起来命中了”不算完成，须覆盖多组延迟、机动时刻和初始位置并逐一报告验收结果。

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">BTT 速度坐标系、零倾侧角和正方向</title>
+  <desc id="desc">x 轴沿速度方向，y 轴向右，z 轴向上；零倾侧时法向加速度沿正 z，正倾侧绕正 x 按右手定则转向正 y。</desc>
+  <rect width="720" height="300" rx="16" fill="#f6f8fb"/>
+  <g transform="translate(230 165)" stroke-linecap="round">
+    <path d="M0 0 L245 0" stroke="#1d4e78" stroke-width="5"/><path d="M245 0 l-18-10 v20z" fill="#1d4e78"/><text x="260" y="6" font-family="Microsoft YaHei,sans-serif" font-size="18" fill="#1d4e78">+xᵥ（速度）</text>
+    <path d="M0 0 L0 -115" stroke="#31816b" stroke-width="5"/><path d="M0 -115 l-10 18 h20z" fill="#31816b"/><text x="12" y="-102" font-family="Microsoft YaHei,sans-serif" font-size="18" fill="#31816b">+zᵥ</text>
+    <path d="M0 0 L-105 82" stroke="#c77c35" stroke-width="5"/><path d="M-105 82 l20-4-12-15z" fill="#c77c35"/><text x="-155" y="108" font-family="Microsoft YaHei,sans-serif" font-size="18" fill="#c77c35">+yᵥ</text>
+    <path d="M55 -78 A96 96 0 0 1 -35 -88" fill="none" stroke="#7b8799" stroke-width="3" marker-end="url(#a)"/><text x="-5" y="-115" font-family="Microsoft YaHei,sans-serif" font-size="16" fill="#596879">+φ（右手定则）</text>
+  </g>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3z" fill="#7b8799"/></marker></defs>
+  <text x="28" y="34" font-family="Microsoft YaHei,sans-serif" font-size="20" font-weight="700" fill="#172536">BTT 统一约定</text>
+  <text x="28" y="64" font-family="Microsoft YaHei,sans-serif" font-size="15" fill="#596879">φ=0 时法向指令沿 +zᵥ；φ&gt;0 将其按右手定则转向 +yᵥ。</text>
+</svg>
