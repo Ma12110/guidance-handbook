@@ -266,7 +266,9 @@ static Vec3 traffic_accel(double t_s, Vec3 v)
 static AccelCommand design_guidance(const Body *own, const Body *traffic,
                                     Vec3 waypoint)
 {
-    AccelCommand out = {{0.0,0.0,0.0}, false};
+    AccelCommand out;
+    out.a = (Vec3){0.0,0.0,0.0};
+    out.valid = false;
     if (own == NULL || traffic == NULL) return out;
     if (!isfinite(own->r.x) || !isfinite(own->r.y) || !isfinite(own->r.z) ||
         !isfinite(own->v.x) || !isfinite(own->v.y) || !isfinite(own->v.z) ||
@@ -301,8 +303,12 @@ static void step_body(Body *b, Vec3 a, double dt_s)
 
 int main(void)
 {
-    Body own = {{0.0,0.0,1000.0},{90.0,0.0,0.0}};
-    Body traffic = {{3500.0,-4000.0,1000.0},{60.62,35.0,0.0}};
+    Body own;
+    own.r = (Vec3){0.0,0.0,1000.0};
+    own.v = (Vec3){90.0,0.0,0.0};
+    Body traffic;
+    traffic.r = (Vec3){3500.0,-4000.0,1000.0};
+    traffic.v = (Vec3){60.62,35.0,0.0};
     const Vec3 waypoint = {12000.0,0.0,1000.0};
     double min_sep_m = INFINITY, min_sep_time_s = 0.0;
 
