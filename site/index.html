@@ -26,8 +26,8 @@ body{font-family:"Source Sans 3","Segoe UI","Microsoft YaHei",sans-serif;backgro
 <script src="labs-01-07.js"></script><script src="labs-08-13.js"></script><script src="labs-14-18.js"></script><script src="labs-19-22.js"></script><script src="lab-ui.js"></script>
 <script>
 const chapterFiles=Array.from({length:9},(_,i)=>`chapter-${String(i+1).padStart(2,'0')}.md`);
-const titles={1:'导弹 GNC 系统与任务流程',2:'坐标系与三维相对运动',3:'经典制导律',4:'中制导、预测与全程交接',5:'弹体动力学与 BTT/STT 控制分配',6:'指令整形与执行机构约束',7:'状态估计与鲁棒控制',8:'最优制导与模型预测控制',9:'弹载 C 软件与硬实时实现'};
-const descriptions={1:'任务、导航、制导、控制的职责与周期接口',2:'参考系、角度约定、相对运动与视线几何',3:'追踪、比例导引、限幅与适用边界',4:'中段信息更新、预测、延迟和阶段交接',5:'气动模型、加速度分配、BTT 与 STT',6:'幅值/速率限制、指令突变、抗饱和与抖振',7:'状态估计、噪声、延迟和鲁棒反馈',8:'最优控制、约束处理与滚动优化',9:'数据链协同、确定性调度、C 周期任务与验证'};
+const titles={1:'导弹 GNC 系统与任务流程',2:'坐标系与三维相对运动',3:'经典制导律',4:'中制导、预测与全程交接',5:'弹体动力学与 BTT/STT 控制分配',6:'指令整形与执行机构约束',7:'状态估计与鲁棒控制',8:'改进制导律、最优制导与 MPC',9:'弹载 C 软件与硬实时实现'};
+const descriptions={1:'任务、导航、制导、控制的职责与周期接口',2:'参考系、角度约定、相对运动与视线几何',3:'追踪、比例导引、限幅与适用边界',4:'中段信息更新、预测、延迟和阶段交接',5:'气动模型、加速度分配、BTT 与 STT',6:'幅值/速率限制、指令突变、抗饱和与抖振',7:'状态估计、噪声、延迟和鲁棒反馈',8:'APN、ZEM、落角约束、TZC 与 MPC',9:'数据链协同、确定性调度、C 周期任务与验证'};
 const labChapterFor={1:1,2:2,3:5,4:9,5:14,6:16,7:17,8:20,9:21};
 const chapterGroup={};
 function esc(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
