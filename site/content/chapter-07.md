@@ -54,6 +54,7 @@ bool tracker_step(Tracker *s, double z_m, double dt_s,
                   double max_speed_mps) {
     if (s == NULL) return false; // 防止空指针解引用
     if (!isfinite(z_m) || !isfinite(dt_s) || dt_s <= 0.0) return false;
+    if (!isfinite(max_speed_mps) || max_speed_mps <= 0.0) return false; // 速度限值必须是有限正数
     if (alpha < 0.0 || alpha > 1.0 || beta < 0.0 || beta > 1.0) return false;
     if (!s->initialized) { // 首次测量仅初始化位置，避免凭空制造速度
         s->position_m = z_m;

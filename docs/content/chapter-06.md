@@ -122,7 +122,7 @@ int main(void) {                    // 独立运行示例
 }
 ```
 
-编译：`cc -std=c11 -Wall -Wextra -pedantic angle_limit.c -lm -o angle_limit`。例如上次输出为 +179°、目标为 −179° 时，最短角差是 +2°，而不是 −358°。本实现默认允许跨过 ±π 边界；如任务指定转向方向，应由上层模式逻辑提供方向约束。
+编译：`cc -std=c99 -Wall -Wextra -pedantic angle_limit.c -lm -o angle_limit`。例如上次输出为 +179°、目标为 −179° 时，最短角差是 +2°，而不是 −358°。本实现默认允许跨过 ±π 边界；如任务指定转向方向，应由上层模式逻辑提供方向约束。
 
 ## 6.6 指令链路的接口约定
 

@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stddef.h>  /* NULL */
 #include <math.h>
+#include <stdio.h>   /* printf */
 
 typedef struct {
     double pos_m;       // 测量时刻的位置，m
@@ -59,6 +60,7 @@ static bool propagate(const StateSample *s, double now_s,
                       double *vel_now)
 {
     if (s == NULL || pos_now == NULL || vel_now == NULL) return false;
+    if (!isfinite(max_age_s) || max_age_s < 0.0) return false;
     if (!s->valid || !isfinite(now_s) || !isfinite(s->stamp_s) ||
         !isfinite(s->pos_m) || !isfinite(s->vel_mps)) return false;
 
@@ -78,6 +80,7 @@ static bool propagate(const StateSample *s, double now_s,
 void update_handoff(HandoffState *h, bool data_ok,
                     bool inside_entry_region,
                     bool outside_exit_region,
+                    bool handoff_confirmed,
                     unsigned int required_samples)
 {
     if (h == NULL || required_samples == 0U) return;
@@ -100,8 +103,11 @@ void update_handoff(HandoffState *h, bool data_ok,
         if (outside_exit_region) {
             h->mode = MODE_MIDCOURSE;
             h->enter_count = 0U;
+        } else if (handoff_confirmed) {
+            // 接收端确认局部传感器/状态有效后，才完成模式切换。
+            h->mode = MODE_LOCAL;
+            h->enter_count = 0U;
         }
-        // 只有接收端确认局部传感器/状态有效后，外层才置 MODE_LOCAL。
     } else { // MODE_LOCAL
         if (outside_exit_region) {
             h->mode = MODE_MIDCOURSE; // 明确的退回逻辑，避免失锁后卡死
@@ -109,9 +115,23 @@ void update_handoff(HandoffState *h, bool data_ok,
         }
     }
 }
+
+int main(void)
+{
+    StateSample sample = {100.0, 20.0, 0.0, 1.0, false, true};
+    HandoffState handoff = {MODE_MIDCOURSE, 0U};
+    double pos_now = 0.0;
+    double vel_now = 0.0;
+    bool handoff_confirmed = false; // 演示：此样例尚未收到接收端确认
+    bool ok = propagate(&sample, 1.1, 0.5, &pos_now, &vel_now);
+    update_handoff(&handoff, ok, true, false, handoff_confirmed, 3U);
+    printf("valid=%d pos=%.3f m vel=%.3f m/s mode=%d\n",
+           ok ? 1 : 0, pos_now, vel_now, (int)handoff.mode);
+    return ok ? 0 : 1;
+}
 ```
 
-这段代码需要由调用方补充：1) 单调时钟来源；2) 时间戳单位和数据同步；3) `inside_entry_region`、`outside_exit_region` 的物理定义；4) 交接接收端确认协议；5) 状态迁移日志和故障码。不能把“进入交接态”误当成“新传感器已经捕获”。
+这段代码需要由调用方补充：1) 单调时钟来源；2) 时间戳单位和数据同步；3) `inside_entry_region`、`outside_exit_region` 的物理定义；4) 只有接收端确认局部传感器/状态有效时才将 `handoff_confirmed` 置真；5) 状态迁移日志和故障码。不能把“进入交接态”误当成“新传感器已经捕获”。
 
 ## 4.5 常见错误与傻瓜式排查
 
@@ -136,7 +156,7 @@ C 示例验收应覆盖：零延迟、恒速、恒加速度、超时数据、未
 ## 两章共用 C 工程小贴士
 
 - **弧度/角度**：三角函数接口使用 rad。输入数据源若给 deg，应在边界处转换一次并标注；不要变量名只写 `angle`，建议 `angle_rad`、`angle_deg`。
-- **编译检查**：`-Wall -Wextra -Wpedantic`；开发构建可使用 AddressSanitizer/UndefinedBehaviorSanitizer。嵌入式目标若无完整 libc，应替换 `isfinite` 等接口并验证其语义。
+- **编译检查**：统一按 C99 编译：`cc -std=c99 -Wall -Wextra -Wpedantic`；开发构建可使用 AddressSanitizer/UndefinedBehaviorSanitizer。嵌入式目标若无完整 libc，应替换 `isfinite` 等接口并验证其语义。
 - **浮点容差**：几何退化判断要有单位一致的阈值；不要拿一个“万能 epsilon”同时比较米、秒和角度。
 - **日志**：每条控制周期至少记录时间戳、输入有效标志、参考系/模式、关键中间量、原始命令、限幅后命令和故障码。日志不要只保存最终输出。
 - **模块接口**：建议纯函数计算制导几何，状态机单独管理模式，限幅器独立管理约束，驱动层负责传感器/执行器。避免把解析、全局变量、滤波和控制计算塞进一个巨大函数。

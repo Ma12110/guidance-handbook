@@ -28,13 +28,14 @@ static const double candidates[M] = {-2.0, -1.0, 0.0, 1.0, 2.0}; // m/s^2
 static double best_cost; // 当前搜索到的最小代价
 static double best_first_u; // 最优序列的第一个控制量
 
-static void search(int depth, double p, double v, double first_u,
-                   bool has_first, double dt, double target_p) {
+static void search(int depth, double p, double v, double cumulative_cost,
+                   double first_u, bool has_first, double dt, double target_p) {
     if (depth == N) { // 到达预测末端，代价已累计完毕
         const double terminal = 8.0 * (p - target_p) * (p - target_p)
                               + 2.0 * v * v; // 终端位置/速度惩罚
-        if (terminal < best_cost) { // 保留总成本最低的序列
-            best_cost = terminal;
+        const double total_cost = cumulative_cost + terminal; // 阶段代价与终端代价相加
+        if (total_cost < best_cost) { // 保留完整预测成本最低的序列
+            best_cost = total_cost;
             best_first_u = first_u;
         }
         return; // 当前分支完成
@@ -45,10 +46,11 @@ static void search(int depth, double p, double v, double first_u,
         const double v_next = v + dt * u; // 速度更新
         const double stage = (p_next - target_p) * (p_next - target_p)
                            + 0.2 * v_next * v_next + 0.1 * u * u; // 阶段成本
-        /* 简单剪枝：若已付成本不优于当前最优，停止该分支。 */
-        if (stage >= best_cost) continue;
-        search(depth + 1, p_next, v_next,
-               has_first ? first_u : u, true, dt, target_p); // 递归搜索后续输入
+        /* 所有阶段代价非负；若已累计成本不小于当前完整最优值，后续不可能更优。 */
+        const double next_cost = cumulative_cost + stage; // 累计本步阶段代价
+        if (next_cost >= best_cost) continue;
+        search(depth + 1, p_next, v_next, next_cost,
+               has_first ? first_u : u, true, dt, target_p); // 将累计成本传入下一层
     }
 }
 
@@ -60,7 +62,7 @@ int main(void) {
     for (int k = 0; k < 30; ++k) { // 闭环运行 30 个周期
         best_cost = INFINITY; // 每个周期重新初始化搜索上界
         best_first_u = 0.0; // 缺省控制量
-        search(0, p, v, 0.0, false, dt, target_p); // 从实测/估计状态开始预测
+        search(0, p, v, 0.0, 0.0, false, dt, target_p); // 初始累计成本为零
         const double u = best_first_u; // 只采用第一个控制量
         p += dt * v + 0.5 * dt * dt * u; // 教学对象按同一模型推进
         v += dt * u;
@@ -70,7 +72,7 @@ int main(void) {
 }
 ```
 
-编译：`cc -std=c99 -O2 -Wall -Wextra -Wpedantic mpc_demo.c -lm -o mpc_demo`。本示例代码刻意保持短小，实际项目应把状态、权重、约束和求解状态放入显式结构体，避免全局变量；同时加入输入速率限制、超时检查、不可行检测以及安全备用控制。
+编译：`cc -std=c99 -O2 -Wall -Wextra -Wpedantic mpc_demo.c -lm -o mpc_demo`。本示例代码刻意保持短小，实际项目应把状态、权重、约束和求解状态放入显式结构体，避免全局变量；同时加入输入速率限制、超时检查、不可行检测以及安全备用控制。枚举器的所有阶段成本非负，因此剪枝使用“累计阶段成本不小于当前完整最优代价”这一安全下界；若引入负奖励项，就不能直接使用该剪枝条件。
 
 > 注意：此处剪枝只展示搜索思路，成本下界并未构造，且 stage 和 terminal 权重的尺度需一致；生产 MPC 应使用经过验证的 QP/NLP 求解器，不能把此枚举器直接视作实时飞控实现。
 

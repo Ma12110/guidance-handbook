@@ -103,6 +103,8 @@ STT 的符号、可用侧力和与滚转/偏航通道的耦合均依赖气动数
 typedef struct {                    // 定义分配结果结构体
     double bank_rad;                // 倾侧角指令，单位 rad
     double lift_n;                  // 需求升力，单位 N
+    double ay_achievable;           // 限幅后模型可实现的横向加速度，单位 m/s^2
+    double az_achievable;           // 限幅后模型可实现的竖直法向加速度，单位 m/s^2
     bool valid;                     // 本次分配是否有效
     bool limited;                   // 是否触发了限幅/不可达
 } BttResult;
@@ -115,14 +117,21 @@ static double clamp(double x, double lo, double hi) { // 将数值限制在闭�
 
 static BttResult btt_allocate(double ay, double az, double mass,
                               double q, double area,
-                              double lift_coeff_max, double bank_limit_rad) {
-    BttResult out = {0.0, 0.0, false, false}; // 默认安全无效输出
+                              double lift_coeff_max, double bank_limit_rad,
+                              double previous_bank_rad) {
+    BttResult out = {0.0, 0.0, 0.0, 0.0, false, false}; // 默认安全无效输出
     if (!isfinite(ay) || !isfinite(az) || !isfinite(mass) || // 检查输入是否为有限数
-        !isfinite(q) || !isfinite(area) || mass <= 0.0 || q <= 1.0 || area <= 0.0) {
+        !isfinite(q) || !isfinite(area) || !isfinite(lift_coeff_max) ||
+        !isfinite(bank_limit_rad) || !isfinite(previous_bank_rad) ||
+        mass <= 0.0 || q <= 1.0 || area <= 0.0 || lift_coeff_max <= 0.0 ||
+        bank_limit_rad < 0.0 || bank_limit_rad > PI) {
         return out;                     // 数值异常、质量/动压/面积无效时拒绝计算
     }
     double a_mag = hypot(ay, az);       // 计算目标法向加速度模，避免直接平方溢出
     if (a_mag < 1e-9) {                 // 目标向量几乎为零，方向没有定义
+        out.bank_rad = previous_bank_rad; // 小指令时保持上一有效倾侧角，避免方向跳变
+        out.ay_achievable = 0.0;          // 本例将零指令对应的可实现加速度记为零
+        out.az_achievable = 0.0;          // 含重力模型需另外定义零指令保持逻辑
         out.valid = true;               // 零升力需求是有效的
         out.limited = false;            // 没有发生限幅
         return out;                     // bank_rad 保持零；真实系统可保持上次有效参考
@@ -130,12 +139,15 @@ static BttResult btt_allocate(double ay, double az, double mass,
     double bank = atan2(ay, az);        // 根据明确的坐标约定求倾侧角，正确处理象限
     double lift = mass * a_mag;         // 由 F=m*a 得到理想升力需求，单位 N
     double cl_required = lift / (q * area); // 计算所需升力系数，无量纲
-    double cl_used = fmin(cl_required, lift_coeff_max); // 将系数需求限制在模型有效上限
+    double cl_used = fmin(cl_required, lift_coeff_max); // 限制到正升力教学模型的有效上限
     if (cl_used < cl_required) out.limited = true; // 记录升力能力不足
     double lift_used = q * area * cl_used; // 计算限制后可用的升力
-    bank = clamp(bank, -bank_limit_rad, bank_limit_rad); // 对倾侧角施加幅值限制
-    if (fabs(bank) >= bank_limit_rad) out.limited = true; // 记录倾侧角触限
-    out.bank_rad = bank;                // 写入倾侧角指令
+    double bank_limited = clamp(bank, -bank_limit_rad, bank_limit_rad); // 对倾侧角施加幅值限制
+    if (fabs(bank_limited - bank) > 1e-12) out.limited = true; // 记录倾侧角触限
+    /* 倾侧角限幅后，按受限角度重算可实现加速度，不能继续报告原目标已实现。 */
+    out.ay_achievable = (lift_used / mass) * sin(bank_limited); // 可实现横向分量，未计横向重力
+    out.az_achievable = (lift_used / mass) * cos(bank_limited); // 可实现升力法向分量，未计重力
+    out.bank_rad = bank_limited;                // 写入倾侧角指令
     out.lift_n = lift_used;             // 写入受能力约束的升力请求
     out.valid = true;                   // 输入有效，输出可用于后续控制分配
     return out;                         // 返回结果及状态标志
@@ -147,18 +159,18 @@ int main(void) {                        // 独立演示程序入口
     const double area = 16.0;           // 参考面积，m^2
     const double cl_max = 1.2;          // 教学用有效升力系数上限
     const double bank_max = 70.0 * PI / 180.0; // 将 70 度转换为内部弧度
-    BttResult r = btt_allocate(4.0, 6.0, mass, q, area, cl_max, bank_max); // 请求 ay=4, az=6 m/s^2
+    BttResult r = btt_allocate(4.0, 6.0, mass, q, area, cl_max, bank_max, 0.0); // 请求 ay=4, az=6 m/s^2；首次调用以 0 rad 初始化
     if (!r.valid) {                      // 检查函数是否拒绝了输入
         puts("分配失败：检查输入、动压和质量"); // 给出可操作的诊断提示
         return 1;                        // 用非零状态码表示失败
     }
-    printf("bank=%.2f deg, lift=%.1f N, limited=%d\n", // 仅在显示时转换为度
-           r.bank_rad * 180.0 / PI, r.lift_n, (int)r.limited); // 打印结果
+    printf("bank=%.2f deg, lift=%.1f N, ay_real=%.2f, az_real=%.2f, limited=%d\n", // 输出受限后的估计可达量
+           r.bank_rad * 180.0 / PI, r.lift_n, r.ay_achievable, r.az_achievable, (int)r.limited); // 显示角度时转为度
     return 0;                            // 正常结束
 }
 ```
 
-编译命令：`cc -std=c11 -Wall -Wextra -pedantic btt_demo.c -lm -o btt_demo`。本例把目标加速度模直接视为升力加速度，省略了重力、姿态动力学、攻角反解和舵机响应；实际系统必须明确哪些项已由制导层补偿，避免重力重复补偿或漏补偿。
+编译命令：`cc -std=c99 -Wall -Wextra -pedantic btt_demo.c -lm -o btt_demo`。本例把目标法向量解释为已补偿后的速度系升力需求，使用正升力局部近似。若倾侧角或升力系数限幅，程序会基于限幅后的倾侧角与升力重算可实现分量；通常不再等于原始目标。代码没有建模重力、姿态动力学、攻角反解和舵机响应，实际系统必须明确哪些项已由上层补偿，避免重力重复补偿或漏补偿。示例中的 CLmax=1.2、动压、面积质量比和倾侧角上限仅用于演示，绝非通用推荐值；应依据具体构型、飞行状态和验证过的气动数据确定，并同时检查攻角包线、变化率和载荷约束。
 
 ## 5.7 常见错误与排查
 

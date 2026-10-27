@@ -12,15 +12,15 @@
 
 ## 1.2 离散周期中的信号流
 
-数字计算机每隔采样周期 $T_s$ 执行一次。制导器输入的是时刻 $t_k$ 的状态估计，输出的是在接下来一段时间内保持或更新的指令。若周期抖动明显，不能一律用名义 $T_s$ 做差分；应使用实际时间戳差，并对异常 $Delta t$ 进行拒收或降级。
+数字计算机每隔采样周期 $T_s$ 执行一次。制导器输入的是时刻 $t_k$ 的状态估计，输出的是在接下来一段时间内保持或更新的指令。若周期抖动明显，不能一律用名义 $T_s$ 做差分；应使用实际时间戳差 $\Delta t=t_k-t_{k-1}$，并对异常 $\Delta t$ 进行拒收或降级。
 
 一个通用闭环可写为
 
 \[
 \hat{x}_k=\mathcal{E}(y_{0:k}),\quad
 u_k=\pi(\hat{x}_k,r_k),\quad
-u^{\rm safe}_k=\operatorname{limit}(\nu_k),\quad
-u^{\rm plant}_k=\mathcal{C}(\nu^{\rm safe}_k).
+u^{\rm safe}_k=\operatorname{limit}(u_k),\quad
+u^{\rm plant}_k=\mathcal{C}(u^{\rm safe}_k).
 \]
 
 这里 $y$ 是测量，$\hat{x}$ 是估计状态，$r$ 是任务参考，$\pi$ 是制导律，`limit` 是指令幅值/速率保护，$\mathcal C$ 是飞行控制。限幅不能掩盖不可达命令：应同时记录原始命令、限幅后命令、限幅标志与误差。
@@ -71,7 +71,7 @@ static bool finite_vec(Vec3 v) { /* 拒绝 NaN 或无穷输入 */
 
 static GuidanceOutput limit_accel(Vec3 a, double max_mps2) {
     GuidanceOutput out = {a, false};            /* 默认不改变输入 */
-    double mag = sqrt(a.x*a.x + a.y*a.y + a.z*a.z); /* 计算向量模 */
+    double mag = hypot(hypot(a.x, a.y), a.z);     /* hypot 避免平方和溢出或下溢 */
     if (!isfinite(mag) || !isfinite(max_mps2) || max_mps2 <= 0.0) {
         out.accel_mps2 = (Vec3){0.0, 0.0, 0.0}; /* 参数非法时给安全默认值 */
         out.saturated = true;                    /* 同时报告保护触发 */

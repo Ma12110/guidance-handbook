@@ -125,7 +125,7 @@ int main(void)
 }
 ```
 
-用 GCC/Clang 编译：`cc -std=c11 -Wall -Wextra -Wpedantic -O2 guidance_demo.c -lm -o guidance_demo`。`-lm` 用于链接数学库。启用警告并消除警告后再集成，不要用关闭警告的方式掩盖类型或初始化问题。
+用 GCC/Clang 编译：`cc -std=c99 -Wall -Wextra -Wpedantic -O2 guidance_demo.c -lm -o guidance_demo`。`-lm` 用于链接数学库。启用警告并消除警告后再集成，不要用关闭警告的方式掩盖类型或初始化问题。
 
 ### 代码接入时必须补上的工程环节
 
