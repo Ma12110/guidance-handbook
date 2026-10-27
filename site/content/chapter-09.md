@@ -164,3 +164,179 @@ int main(void)
 ### 本章小结
 
 算法能运行不等于软件能可靠工作。工程实现必须把单位、坐标、采样、异常输入、约束、模型版本、故障降级和可追溯日志都作为接口的一部分。学习策略可提供候选动作，但其运行边界、验证流程和失效处理仍需由系统设计明确规定。
+
+
+## 综合作业：机动交通目标场景下的三维安全绕飞
+
+> **任务性质：**民航/无人机交通避碰教学。目标是安全通过航路点并保持与另一架机动航空器的最小间隔；不以接触目标为成功条件。
+
+### 作业目标
+
+把本书的几何、制导、三自由度质点动力学、指令约束、单位处理和 C 实现串成一个闭环。你需要自己设计制导律，使自主飞行器到达指定航路点，同时预测并避免与机动交通目标发生近距冲突，然后平滑地回到航路。
+
+本题不指定唯一制导律。可以比较纯航路点跟踪、基于最近会遇时间的冲突探测、速度障碍法或带安全约束的滚动规划；重点是说明你的方法何时有效、何时失效。
+
+### 场景和约定
+
+采用局部平直 ENU 坐标系：(x) 向东、(y) 向北、(z) 向上，长度 m、时间 s、速度 m/s、加速度 m/s²。所有角度内部使用 rad。两架航空器均用三自由度质点模型：
+
+[
+\dot{\mathbf r}=\mathbf v,\qquad
+\dot{\mathbf v}=\mathbf a,
+\]
+
+其中 (mathbf r=[x,y,z]^T)，(mathbf v=[v_x,v_y,v_z]^T)，(mathbf a) 是惯性坐标系中的合加速度。这个简化模型不包含姿态、气动数据库、推力或真实飞控；加速度上限是教学约束，不能解释成具体机型性能。
+
+| 项目 | 自主飞行器 | 机动交通目标 |
+|---|---:|---:|
+| 初始位置 | ((0,0,1000)) m | ((3500,-4000,1000)) m |
+| 初始速度 | ((90,0,0)) m/s | ((60.62,35,0)) m/s |
+| 加速度约束 | (|\mathbf a_c|le 2.5) m/s² | 按下述脚本机动 |
+| 任务 | 通过航路点 ((12000,0,1000)) m | 按脚本飞行 |
+
+仿真时域取 160 s，建议步长从 (Delta t=0.05) s 开始，并检查步长减半后结论是否明显变化。目标的横向机动采用已知、确定的测试脚本：(35le t<43) s 时沿水平速度左法向施加 (0.8) m/s²；(43le t<51) s 时施加 (-0.8) m/s²；(80le t<86) s 时施加 (-0.5) m/s²；(86le t<92) s 时施加 (+0.5) m/s²。其他时段加速度为零。左法向定义为 ([-v_y,v_x,0]^T/\sqrt{v_x^2+v_y^2})。若水平速度模过小，脚本应返回零加速度并置有效标志，不能除以零。
+
+该脚本只是可重复的仿真输入，不是目标运动预测模型。自主飞行器可以读取带时间戳的当前位置和速度，但必须自己处理测量延迟、有限采样和状态误差。基础版本先用无噪声同步状态调通，再加入延迟与噪声。
+
+### 要求你完成的工作
+
+1. **建立基准闭环**：实现航路点跟踪，不考虑交通目标；记录位置、速度、指令加速度和航路点误差。
+2. **加入冲突探测**：每周期预测一段有限时间窗内的相对运动，报告预测最近距离和最近会遇时间；说明恒速预测在目标机动后为何会失准。
+3. **设计安全绕飞制导律**：在满足最小间隔的前提下生成平滑加速度指令；目标通过后重新捕获航路点。必须说明冲突解除条件，避免模式在“绕飞/回航”之间来回抖动。
+4. **实现工程约束**：对加速度向量施加模长限制；再加变化率限制或一阶响应模型；检查速度、高度、数值有效性和仿真时域。若命令不可达，应报告饱和标志并在日志中保留限幅前后指令。
+5. **完成对照实验**：至少比较“只跟航路点”和“加入安全绕飞”两种情况；再改变目标机动时刻、测量延迟和最小间隔，观察安全性与航路误差的权衡。
+
+### 验收判据
+
+- 全程最近间隔不得小于 (500) m；报告实际最小间隔及其发生时刻。
+- 仿真结束前，自主飞行器必须进入航路点半径 (250) m 内，并保持速度 (75)–(105) m/s、航迹方向与东向夹角不超过 (15^circ)。
+- 全程满足加速度模长上限；不得出现 NaN/Inf、负时间步或无效状态被当作正常值继续计算。
+- 给出时间历程图：相对距离、预测最近距离、航路点误差、三轴加速度、加速度限幅标志。静态参数扫描图不得放时间播放控件。
+- 说明在何种初始条件或延迟下任务会变为不可行；不能通过放宽安全间隔或隐去失败样本来宣称成功。
+
+### C99 起步框架
+
+下面程序包含状态定义、目标机动脚本、加速度限幅和三自由度积分。基准制导器只负责向航路点飞行，**故意没有实现避碰律**；你需要在标注的 TODO 处增加状态预测、冲突判别、安全绕飞和回航逻辑。初始版本可以运行，但未完成 TODO 前不满足安全验收条件。
+
+```c
+/* 编译：cc -std=c99 -Wall -Wextra -Wpedantic -O2 assignment.c -lm -o assignment */
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#define DT_S 0.05
+#define T_END_S 160.0
+#define A_MAX_MPS2 2.5
+#define V_WAYPOINT_MPS 90.0
+
+typedef struct { double x, y, z; } Vec3; /* ENU：m */
+typedef struct { Vec3 r, v; } Body;      /* 位置 m、速度 m/s */
+typedef struct { Vec3 a; bool valid; } AccelCommand; /* 加速度 m/s^2 */
+
+static Vec3 add(Vec3 a, Vec3 b) { return (Vec3){a.x+b.x,a.y+b.y,a.z+b.z}; }
+static Vec3 sub(Vec3 a, Vec3 b) { return (Vec3){a.x-b.x,a.y-b.y,a.z-b.z}; }
+static Vec3 scale(Vec3 a, double k) { return (Vec3){k*a.x,k*a.y,k*a.z}; }
+static double norm(Vec3 a) { return hypot(hypot(a.x,a.y),a.z); }
+
+static Vec3 limit_accel(Vec3 a, double limit)
+{
+    const double m = norm(a);
+    if (!isfinite(m) || !isfinite(limit) || limit <= 0.0) return (Vec3){0,0,0};
+    if (m > limit) return scale(a, limit/m); /* 保持方向，限制向量模 */
+    return a;
+}
+
+/* 已知机动目标脚本：返回确定的测试加速度，不是预测器。 */
+static Vec3 traffic_accel(double t_s, Vec3 v)
+{
+    const double vh = hypot(v.x, v.y); /* 水平速度模，m/s */
+    if (!isfinite(t_s) || !isfinite(vh) || vh < 1.0) return (Vec3){0,0,0};
+
+    double lateral = 0.0; /* 左法向加速度，m/s^2 */
+    if (t_s >= 35.0 && t_s < 43.0) lateral =  0.8;
+    if (t_s >= 43.0 && t_s < 51.0) lateral = -0.8;
+    if (t_s >= 80.0 && t_s < 86.0) lateral = -0.5;
+    if (t_s >= 86.0 && t_s < 92.0) lateral =  0.5;
+
+    const Vec3 left = {-v.y/vh, v.x/vh, 0.0};
+    return scale(left, lateral);
+}
+
+/* 基准：只跟航路点，故意忽略交通目标。请在此函数补充安全逻辑。 */
+static AccelCommand design_guidance(const Body *own, const Body *traffic,
+                                    Vec3 waypoint)
+{
+    AccelCommand out = {{0.0,0.0,0.0}, false};
+    if (own == NULL || traffic == NULL) return out;
+    if (!isfinite(own->r.x) || !isfinite(own->r.y) || !isfinite(own->r.z) ||
+        !isfinite(own->v.x) || !isfinite(own->v.y) || !isfinite(own->v.z) ||
+        !isfinite(traffic->r.x) || !isfinite(traffic->r.y) ||
+        !isfinite(traffic->r.z) || !isfinite(traffic->v.x) ||
+        !isfinite(traffic->v.y) || !isfinite(traffic->v.z)) return out;
+
+    /* 简单航路点基线：向航路点生成期望速度，再用比例项生成加速度。 */
+    const Vec3 to_wp = sub(waypoint, own->r);
+    const double d = norm(to_wp);
+    Vec3 a_cmd = {0.0,0.0,0.0};
+    if (isfinite(d) && d > 1.0) {
+        const Vec3 v_des = scale(to_wp, V_WAYPOINT_MPS/d);
+        a_cmd = scale(sub(v_des, own->v), 0.8); /* 教学基线，不含交通避让 */
+    }
+
+    /* TODO 1：基于相对位置/速度预测最近会遇距离和时间。 */
+    /* TODO 2：若风险触发，生成带滞回的安全绕飞命令。 */
+    /* TODO 3：冲突解除后平滑回到航路点跟踪，避免指令突变。 */
+
+    out.a = limit_accel(a_cmd, A_MAX_MPS2); /* 最终施加加速度模长限制 */
+    out.valid = isfinite(out.a.x) && isfinite(out.a.y) && isfinite(out.a.z);
+    return out;
+}
+
+/* 三自由度质点：先更新速度，再用更新后的速度更新位置。 */
+static void step_body(Body *b, Vec3 a, double dt_s)
+{
+    b->v = add(b->v, scale(a, dt_s));
+    b->r = add(b->r, scale(b->v, dt_s));
+}
+
+int main(void)
+{
+    Body own = {{0.0,0.0,1000.0},{90.0,0.0,0.0}};
+    Body traffic = {{3500.0,-4000.0,1000.0},{60.62,35.0,0.0}};
+    const Vec3 waypoint = {12000.0,0.0,1000.0};
+    double min_sep_m = INFINITY, min_sep_time_s = 0.0;
+
+    for (double t=0.0; t<T_END_S; t+=DT_S) {
+        const AccelCommand cmd = design_guidance(&own,&traffic,waypoint);
+        if (!cmd.valid) { puts("无效制导输出：终止仿真并检查输入"); return 1; }
+
+        step_body(&own, cmd.a, DT_S);
+        step_body(&traffic, traffic_accel(t,traffic.v), DT_S);
+
+        const double sep = norm(sub(own.r,traffic.r));
+        if (sep < min_sep_m) { min_sep_m=sep; min_sep_time_s=t+DT_S; }
+
+        if (!isfinite(sep) || !isfinite(own.r.x) || !isfinite(traffic.r.x)) {
+            puts("数值异常：检查步长、输入和状态更新顺序");
+            return 2;
+        }
+    }
+
+    printf("最小间隔 %.1f m，发生于 %.2f s\n",min_sep_m,min_sep_time_s);
+    printf("航路点剩余距离 %.1f m\n",norm(sub(waypoint,own.r)));
+    puts("提示：此起步基线没有避碰逻辑，需完成 TODO 后再检查安全判据。");
+    return 0;
+}
+```
+
+**注意：**这段程序使用半隐式 Euler 积分，仅用于起步。你需要对比步长减半结果；若振荡或约束判定对步长敏感，改用 RK4 或明确处理事件穿越。还要补充速度/高度包线、加速度变化率限制、最小间隔预测及滞回退出；不能只在离散采样点检查距离，因为两步之间也可能发生最近接近。
+
+### 提交内容
+
+1. C99 源码、编译命令和运行说明。
+2. 制导逻辑流程图或状态机，解释航路跟踪、冲突预测、绕飞、回航之间的切换条件。
+3. 基准与避让方案的对照图和验收表，写出最小间隔、航路点误差、峰值加速度、饱和比例和计算步长。
+4. 一页“失败案例”：至少展示一次参数或延迟导致的安全裕度不足，并按本章排错流程定位原因。
+5. 简短说明：你选的方法的假设是什么，哪些情形下会失效，下一步如何提高模型可信度。
+
+**评分建议（100 分）：**模型与单位约定 15；C 实现与数值健壮性 20；安全冲突预测和绕飞逻辑 25；平滑限幅与滞回切换 15；实验设计、图表和失败分析 15；复现说明 10。只让一次仿真“看起来绕开了”不算完成，须覆盖多组延迟、机动时刻和初始位置并逐一报告验收结果。
