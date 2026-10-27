@@ -79,7 +79,7 @@ a_n\approx g\tan\phi,
 
 Bank-to-turn（BTT，倾侧转弯）与 skid-to-turn（STT，侧滑转弯）描述的是**如何产生转弯法向力**，不是两套可以任意切换的制导律。BTT 通过滚转改变升力矢量的方向；STT 通过侧滑角及其引起的侧向气动力产生转弯力。具体飞行器能否采用某种方式，取决于气动构型、舵面/推力矢量配置、飞行包线和控制分配能力。以下用局部速度坐标说明小侧滑、非失速条件；符号约定必须随实现写入接口。
 
-令 \(\mathbf e_v\) 沿空速方向，\(\mathbf e_y\) 为速度法平面内的横向单位矢量，\(\mathbf e_z\) 为该平面内的竖向单位矢量，构成右手正交基；\(\phi\) 为绕速度轴的倾侧角。把期望法向加速度（或扣除重力后的期望气动力加速度）投影为
+令 \(\mathbf e_v\) 沿空速方向，\(\mathbf e_y\) 为速度法平面内的横向单位矢量，\(\mathbf e_z\) 为该平面内向上的法向单位矢量，构成右手正交基；\(\phi\) 为绕速度轴的倾侧角。本节的 \(a_{y,c},a_{z,c}\) 明确表示包含重力后的期望惯性加速度分量；忽略侧向/竖向推力时，气动力必须分别提供 \(a_{y,c}\) 与 \(a_{z,c}+g\)。把目标净加速度投影为
 
 \[
 \mathbf a_{n,c}=a_{y,c}\mathbf e_y+a_{z,c}\mathbf e_z,\qquad
@@ -89,22 +89,30 @@ a_{n,c}=\sqrt{a_{y,c}^2+a_{z,c}^2}.
 **BTT 几何分配。** 在升力大小为 \(L\)、升力矢量可随滚转在 \(\mathbf e_y,\mathbf e_z\) 平面旋转且侧向力可忽略的近似下，法向力加速度为
 
 \[
-\begin{bmatrix}a_y\\a_z\end{bmatrix}
+\begin{bmatrix}a_y\\a_z+g\end{bmatrix}
 =\frac{L}{m}\begin{bmatrix}\sin\phi\\\cos\phi\end{bmatrix}.
 \]
 
-因此若目标法向加速度大小主要由升力通道提供，几何目标倾侧角可取 \(\phi_c=\operatorname{atan2}(a_{y,c},a_{z,c})\)，所需升力大小为 \(L_c=m\sqrt{a_{y,c}^2+a_{z,c}^2}\)。在近似定高、\(a_{z,c}\simeq g\) 的协调转弯中，这退化为 \(\tan\phi_c=a_{y,c}/g\)。该几何解只给出期望力方向和大小；它没有证明目标升力可实现，也没有给出姿态动力学和控制面指令。
-
-**STT 几何分配。** 若构型具有可控的侧向气动力通道，则维持较小滚转、通过侧滑产生横向力。以风轴系侧力定义 \(Y=qS C_Y(M,\alpha,\beta,\boldsymbol\delta)\)，其中 \(q=\rho V^2/2\)，\(\beta\) 为侧滑角，\(\boldsymbol\delta\) 表示可用舵面，STT 的静态目标是满足
+因此，忽略该平面推力分量时，BTT 几何目标为
 
 \[
-\frac{qS}{m}C_Y(M,\alpha,\beta_c,\boldsymbol\delta_c)=a_{y,c},
+\phi_c=\operatorname{atan2}(a_{y,c},a_{z,c}+g),\qquad
+\frac{L_c}{m}=\sqrt{a_{y,c}^2+(a_{z,c}+g)^2}.
 \]
 
-同时由升力/垂向通道满足所需的 \(a_{z,c}\)。若忽略舵偏并只在参考点附近线性化，\(C_Y\simeq C_{Y\beta}\beta+C_{Y\delta}\delta\)，则给定舵面偏角时
+若有推力分量 \(T_y,T_z\)，则将 \(a_{y,c}\)、\(a_{z,c}+g\) 分别替换为 \(a_{y,c}-T_y/m\)、\(a_{z,c}+g-T_z/m\)。水平定高协调转弯时 \(a_{z,c}=0\)，于是 \(\tan\phi_c=a_{y,c}/g\)、\(L_c/(mg)=1/\cos\phi_c\)。该几何解只给出期望力方向和大小；它没有证明目标升力可实现，也没有给出姿态动力学和控制面指令。
+
+**STT 几何分配。** 若构型具有可控的侧向气动力通道，则维持较小滚转、通过侧滑产生横向力。以风轴系侧力和法向升力定义 \(Y=qS C_Y(M,\alpha,\beta,\boldsymbol\delta)\)、\(L=qS C_L(M,\alpha,\beta,\boldsymbol\delta)\)，其中 \(q=\rho V^2/2\)，\(\beta\) 为侧滑角，\(\boldsymbol\delta\) 表示可用舵面。忽略横向/竖向推力时，STT 的静态目标需同时满足
 
 \[
-\beta_c\simeq\frac{m a_{y,c}/(qS)-C_{Y\delta}\delta_c}{C_{Y\beta}}.
+\frac{qS}{m}C_Y(M,\alpha_c,\beta_c,\boldsymbol\delta_c)=a_{y,c},\qquad
+\frac{qS}{m}C_L(M,\alpha_c,\beta_c,\boldsymbol\delta_c)=a_{z,c}+g.
+\]
+
+若忽略交叉耦合并在配平点附近线性化，\(C_Y\simeq C_{Y\beta}\Delta\beta+C_{Y\delta}\Delta\delta\)，则给定舵面偏角时
+
+\[
+\Delta\beta_c\simeq\frac{m a_{y,c}/(qS)-C_{Y\delta}\Delta\delta_c}{C_{Y\beta}}.
 \]
 
 当 \(C_{Y\beta}\) 很小、接近零或符号/单调性变化时，这个逆解会病态或失效；此时须使用适用构型的气动表、正则化/受限求解或不同控制分配，不能靠增大 PID 增益补救。STT 也不意味着“只有侧滑角”：攻角、舵偏、姿态和侧向力往往耦合，且持续侧滑会改变阻力与可用升力。
