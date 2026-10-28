@@ -77,11 +77,13 @@
     <g transform="translate(60 96)">
       <rect class="box" width="505" height="305" rx="14"/>
       <text class="t label" x="22" y="38">C1　LOS 与速度相对水平面的角</text>
+      <line class="b" x1="25" y1="62" x2="61" y2="62"/><text class="t small" x="70" y="68">LOS</text>
+      <line class="g" x1="140" y1="62" x2="176" y2="62"/><text class="t small" x="185" y="68">导弹速度 vₘ</text>
       <g transform="translate(75 245)">
         <line class="axis" x1="0" y1="0" x2="365" y2="0" marker-end="url(#red)"/><text class="t small" x="300" y="30">局部水平面</text>
         <line class="axis" x1="0" y1="0" x2="0" y2="-155" marker-end="url(#blue)"/><text class="t label" x="13" y="-147">天 U</text>
-        <line class="b" x1="0" y1="0" x2="335" y2="-125" marker-end="url(#blue)"/><text class="t label" x="292" y="-142">LOS</text>
-        <line class="g" x1="0" y1="0" x2="325" y2="-62" marker-end="url(#green)"/><text class="t sym" x="290" y="-72">vₘ</text>
+        <line class="b" x1="0" y1="0" x2="335" y2="-125" marker-end="url(#blue)"/>
+        <line class="g" x1="0" y1="0" x2="325" y2="-62" marker-end="url(#green)"/>
         <path class="arc" d="M73 0 A73 73 0 0 0 68 -26" stroke="#28678f"/><text class="t sym" x="76" y="-13">λ<tspan baseline-shift="sub" font-size="17">el</tspan></text>
         <path class="arc" d="M133 0 A133 133 0 0 0 131 -25" stroke="#27836d"/><text class="t sym" x="140" y="-31">γₘ</text>
       </g>
@@ -90,11 +92,14 @@
     <g transform="translate(590 96)">
       <rect class="box" width="505" height="305" rx="14"/>
       <text class="t label" x="22" y="38">C2　机体、速度与视轴之间的角</text>
+      <line class="b" x1="25" y1="62" x2="57" y2="62"/><text class="t small" x="66" y="68">LOS</text>
+      <line class="r" x1="130" y1="62" x2="162" y2="62"/><text class="t small" x="171" y="68">机体轴 / 视轴</text>
+      <line class="g" x1="320" y1="62" x2="352" y2="62"/><text class="t small" x="361" y="68">速度 vₘ</text>
       <g transform="translate(70 242)">
         <line class="dash" x1="0" y1="0" x2="365" y2="0"/><text class="t small" x="296" y="28">局部水平面</text>
-        <line class="g" x1="0" y1="0" x2="345" y2="-60" marker-end="url(#green)"/><text class="t sym" x="312" y="-70">vₘ</text>
-        <line class="r" x1="0" y1="0" x2="325" y2="-120" marker-end="url(#red)"/><text class="t label" x="266" y="-137">x<tspan baseline-shift="sub">b</tspan> / 视轴</text>
-        <line class="b" x1="0" y1="0" x2="285" y2="-175" marker-end="url(#blue)"/><text class="t label" x="248" y="-190">LOS</text>
+        <line class="g" x1="0" y1="0" x2="345" y2="-60" marker-end="url(#green)"/>
+        <line class="r" x1="0" y1="0" x2="325" y2="-120" marker-end="url(#red)"/>
+        <line class="b" x1="0" y1="0" x2="285" y2="-175" marker-end="url(#blue)"/>
         <path class="arc" d="M120 0 A120 120 0 0 0 112 -42" stroke="#b65353"/><text class="t sym" x="123" y="-42">θ</text>
         <path class="arc" d="M206 -76 A220 220 0 0 1 215 -38" stroke="#7552a2"/><text class="t sym" x="220" y="-49">α</text>
         <path class="arc" d="M238 -146 A280 280 0 0 0 260 -96" stroke="#c27d35"/><text class="t sym" x="266" y="-120">θ<tspan baseline-shift="sub" font-size="17">off</tspan></text>
@@ -112,6 +117,8 @@
     <g transform="translate(70 98)">
       <rect class="box" width="430" height="260" rx="14"/>
       <text class="t label" x="22" y="38">D1　沿 +xᵥ 观察速度法平面</text>
+      <line class="axis" x1="24" y1="64" x2="58" y2="64"/><text class="t small" x="67" y="70">零倾侧方向</text>
+      <line class="g" x1="230" y1="64" x2="264" y2="64"/><text class="t small" x="273" y="70">法向指令 a<tspan baseline-shift="sub">⊥</tspan></text>
       <g transform="translate(175 165)">
         <circle cx="0" cy="0" r="92" fill="none" stroke="#d2dfe7" stroke-width="2"/>
         <line class="axis" x1="0" y1="0" x2="0" y2="-120" marker-end="url(#blue)"/>
@@ -119,23 +126,21 @@
         <line class="g" x1="0" y1="0" x2="82" y2="-82" marker-end="url(#green)"/>
         <path class="arc" d="M0 -62 A62 62 0 0 1 44 -44" stroke="#27836d"/>
         <text class="t sym" x="24" y="-67">φᵥ</text>
-        <text class="t small" x="12" y="-116">零倾侧方向</text>
         <text class="t small" x="126" y="7">+yᵥ</text>
-        <text class="t sym" x="88" y="-80">a<tspan baseline-shift="sub" font-size="17">⊥</tspan></text>
       </g>
     </g>
 
     <g transform="translate(525 98)">
       <rect class="box" width="570" height="260" rx="14"/>
       <text class="t label" x="22" y="38">D2　终端速度方向与期望方向</text>
+      <line class="p" x1="24" y1="65" x2="60" y2="65"/><text class="t small" x="69" y="71">期望方向 d̂<tspan baseline-shift="sub">f</tspan>(χ<tspan baseline-shift="sub">f</tspan>, γ<tspan baseline-shift="sub">f</tspan>)</text>
+      <line class="g" x1="320" y1="65" x2="356" y2="65"/><text class="t small" x="365" y="71">终端速度</text>
       <g transform="translate(60 220)">
         <circle cx="0" cy="0" r="8" fill="#28678f"/>
         <line class="g" x1="0" y1="0" x2="380" y2="-112" marker-end="url(#green)"/>
         <line class="p" x1="0" y1="0" x2="325" y2="-180" marker-end="url(#purple)"/>
         <path class="arc" d="M245 -136 A280 280 0 0 0 270 -80" stroke="#7552a2"/>
         <text class="t sym" x="278" y="-105">ε<tspan baseline-shift="sub" font-size="17">f</tspan></text>
-        <text class="t small" x="188" y="-205">期望方向 d̂<tspan baseline-shift="sub">f</tspan>(χ<tspan baseline-shift="sub">f</tspan>, γ<tspan baseline-shift="sub">f</tspan>)</text>
-        <text class="t small" x="270" y="-55">终端速度 vₘ(t<tspan baseline-shift="sub">f</tspan>)</text>
       </g>
     </g>
     <text class="t small" x="75" y="390">φᵥ：法向加速度倾侧角　　β：侧滑角　　ηₜ：目标迎向角　　ε<tspan baseline-shift="sub">f</tspan>：终端方向误差；ε<tspan baseline-shift="sub">f</tspan> 与位置脱靶量是两个独立指标。</text>
