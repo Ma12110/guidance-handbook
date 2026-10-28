@@ -29,7 +29,7 @@
       <line class="b" x1="100" y1="-34" x2="625" y2="-187" marker-end="url(#blue)"/>
       <text class="t sym" x="370" y="-133">r，LOS</text>
       <line class="g" x1="100" y1="-34" x2="280" y2="-83" marker-end="url(#green)"/><text class="t sym" x="220" y="-101">vₘ</text>
-      <line class="o" x1="635" y1="-190" x2="635" y2="-235" marker-end="url(#orange)"/><text class="t sym" x="654" y="-207">vₜ</text>
+      <line class="o" x1="635" y1="-190" x2="635" y2="-235" marker-end="url(#orange)"/><text class="t sym" x="585" y="-245">vₜ</text>
     </g>
     <g transform="translate(820 104)">
       <rect class="box" width="275" height="205" rx="13"/>
