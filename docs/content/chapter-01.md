@@ -63,6 +63,8 @@
 
 ![三维制导坐标系与角度总图](assets/guidance-angles-overview.svg)
 
+> 若屏幕较小，可[单独打开高清矢量图](assets/guidance-angles-overview.svg)后缩放查看。新版按 A—D 四层纵向排布，每层占满正文宽度。
+
 读图时应先判断角属于哪一层：$\lambda_{az},\lambda_{el}$ 描述 **LOS 在导航系中的显示方向**；$\boldsymbol\omega_{LOS}$ 描述 **LOS 在三维空间的瞬时转动**，是 PN 的直接输入；$\eta_M,\eta_T,\theta_{off}$ 是 **两个方向矢量之间的几何夹角**；$\chi,\gamma$ 描述速度方向；$\psi,\theta,\phi$ 描述机体姿态；$\alpha,\beta,\phi_v$ 用于把制导加速度交给气动与控制系统；$\varepsilon_f$ 则用于检查终端方向约束。它们不能因为都以度或弧度表示就互相代换。
 
 ## 学习准备：最低限度的数学与控制知识
