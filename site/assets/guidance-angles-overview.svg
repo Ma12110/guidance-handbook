@@ -2,11 +2,11 @@
   <title id="title">三维制导坐标系与角度总图</title>
   <desc id="desc">采用四个大分区和独立小图说明三维弹目几何、水平角、垂直角、气动控制角与终端方向误差。</desc>
   <defs>
-    <marker id="blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#28678f"/></marker>
-    <marker id="green" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#27836d"/></marker>
-    <marker id="orange" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#c27d35"/></marker>
-    <marker id="red" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b65353"/></marker>
-    <marker id="purple" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#7552a2"/></marker>
+    <marker id="blue" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#28678f"/></marker>
+    <marker id="green" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#27836d"/></marker>
+    <marker id="orange" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#c27d35"/></marker>
+    <marker id="red" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#b65353"/></marker>
+    <marker id="purple" markerWidth="7" markerHeight="7" refX="6.5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#7552a2"/></marker>
     <style>
       .t{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#20384b}.title{font-size:34px;font-weight:700}.sub{font-size:21px;fill:#5c7284}.head{font-size:28px;font-weight:700}.label{font-size:22px}.small{font-size:19px;fill:#5d7384}.sym{font-family:"Cambria Math","Times New Roman",serif;font-size:27px;font-weight:700}.panel{fill:#fafcfe;stroke:#c6d7e2;stroke-width:2}.box{fill:#fff;stroke:#d3dfe7;stroke-width:2}.axis{stroke:#91a7b7;stroke-width:3}.dash{stroke:#a4b6c3;stroke-width:2;stroke-dasharray:8 7}.b{stroke:#28678f;stroke-width:6}.g{stroke:#27836d;stroke-width:6}.o{stroke:#c27d35;stroke-width:6}.r{stroke:#b65353;stroke-width:6}.p{stroke:#7552a2;stroke-width:6}.arc{fill:none;stroke-width:4}.badge{fill:#e8f2f8;stroke:#b9cfdd}.warn{fill:#fff5df;stroke:#e6c98a}
     </style>
